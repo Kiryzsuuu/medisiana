@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana — Diskusi Kasus</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <button class="new-btn" onclick="show('m-case')"><i class="ti ti-plus" aria-hidden="true"></i> Post Kasus</button>
+      <div class="nav-label">Menu</div>
+      <nav class="nav-menu mb-22">
+        <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
+        <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
+        <a href="cases.html" class="nav-link active"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
+        <a href="wellness.html" class="nav-link"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
+      </nav>
+
+      <div class="nav-label">Daftar Kasus</div>
+      <div style="flex:1;overflow-y:auto;margin:0 -6px">
+        <div style="padding:0 6px" id="case-thread-list">
+          <div class="fs-12" style="color:rgba(255,255,255,.6);padding:8px 10px">Memuat...</div>
+        </div>
+      </div>
+
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div>
+            <div class="side-user-name" id="side-name">—</div>
+            <div class="side-user-role" id="side-role">—</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main: case detail -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title" style="font-size:18px" id="case-title">Pilih kasus di sebelah kiri</div>
+          <div class="head-sub" id="case-meta">—</div>
+        </div>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="chat-wrap">
+        <div class="chat-scroll" id="case-detail-scroll">
+          <div class="empty">
+            <div class="empty-ic"><i class="ti ti-stethoscope" aria-hidden="true"></i></div>
+            <div class="empty-title">Pilih kasus untuk mulai diskusi</div>
+            <div class="empty-sub">Atau post kasus baru untuk didiskusikan bersama.</div>
+          </div>
+        </div>
+
+        <div class="composer" id="comment-composer" style="display:none">
+          <div class="composer-box">
+            <div class="av av-sm" id="comment-avatar" style="margin-left:-6px">—</div>
+            <input id="cin" placeholder="Tulis pendapat atau DD kamu..." onkeydown="if(event.key==='Enter')sendComment()" />
+            <button class="composer-ic" onclick="askHint()" title="Minta hint Medina" id="hint-btn"><i class="ti ti-robot" aria-hidden="true"></i></button>
+            <button class="composer-send" onclick="sendComment()"><i class="ti ti-send" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <aside class="rpanel">
+      <div class="rp-block">
+        <div class="rp-label"><i class="ti ti-users" aria-hidden="true"></i> Peserta Diskusi</div>
+        <div id="case-participants">
+          <div class="fs-12 text-mut">Pilih kasus dulu.</div>
+        </div>
+      </div>
+
+      <div class="rp-block">
+        <div class="card card-flat" style="background:#FEF2DC;border-color:#FCE3B8;padding:15px">
+          <div class="flex gap-8">
+            <i class="ti ti-bulb text-amber" style="font-size:20px;flex-shrink:0" aria-hidden="true"></i>
+            <div class="fs-12 text-soft" style="line-height:1.6">Medina memberi <strong>hint Socratic</strong> — bukan diagnosis langsung. Tujuannya melatih clinical reasoning kamu.</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<!-- Modal: Post Case -->
+<div class="modal-bg" id="m-case">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Post Kasus Baru</div>
+      <button class="rpanel-close" onclick="hide('m-case')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <p id="create-case-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+    <div class="field">
+      <label class="field-label">Judul Kasus</label>
+      <input class="input" id="case-title-input" placeholder="cth: Laki-laki 40 th, nyeri kepala mendadak" />
+    </div>
+    <div class="field">
+      <label class="field-label">Kategori</label>
+      <select class="select" id="case-category-input"><option>Kardiovaskular</option><option>Neurologi</option><option>Respirasi</option><option>Gastroenterologi</option><option>Pediatri</option><option>Farmakologi</option></select>
+    </div>
+    <div class="field">
+      <label class="field-label">Deskripsi Kasus</label>
+      <textarea class="textarea" id="case-content-input" rows="5" placeholder="Identitas pasien (fiksi), keluhan, pemeriksaan fisik, hasil lab..."></textarea>
+    </div>
+    <div class="flex gap-10 mt-18">
+      <button class="btn btn-ghost flex-1" onclick="hide('m-case')">Batal</button>
+      <button class="btn btn-primary flex-1" id="case-submit-btn" onclick="submitNewCase()"><i class="ti ti-send" aria-hidden="true"></i> Post Kasus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentUser = requireAuth('student');
+
+let allCases = [];
+let activeCaseId = null;
+
+function show(id){ document.getElementById(id).classList.add('show'); }
+function hide(id){ document.getElementById(id).classList.remove('show'); }
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+function timeAgo(dateStr) {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'baru saja';
+  if (mins < 60) return `${mins} menit lalu`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} jam lalu`;
+  return `${Math.floor(hours / 24)} hari lalu`;
+}
+
+if (currentUser) {
+  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
+  document.getElementById('side-name').textContent = currentUser.fullName;
+  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+  document.getElementById('comment-avatar').textContent = initials(currentUser.fullName);
+}
+
+function renderThreadList() {
+  const container = document.getElementById('case-thread-list');
+  if (!allCases.length) {
+    container.innerHTML = '<div class="fs-12" style="color:rgba(255,255,255,.6);padding:8px 10px">Belum ada kasus.</div>';
+    return;
+  }
+  container.innerHTML = allCases.map(c => `
+    <div class="thread ${c._id === activeCaseId ? 'active' : ''}" style="background:${c._id === activeCaseId ? 'rgba(255,255,255,.16)' : 'transparent'}" onclick="openCase('${c._id}')">
+      <div class="thread-title" style="color:${c._id === activeCaseId ? '#fff' : 'rgba(255,255,255,.9)'}"></div>
+      <div class="thread-sub" style="color:rgba(255,255,255,.65)">${escapeHtml(c.category || 'Umum')} · ${(c.comments || []).length} komentar</div>
+    </div>
+  `).join('');
+  container.querySelectorAll('.thread-title').forEach((el, i) => { el.textContent = allCases[i].title; });
+}
+
+async function loadCases() {
+  try {
+    const { cases } = await apiFetch('/cases');
+    allCases = cases;
+    renderThreadList();
+  } catch (err) {
+    document.getElementById('case-thread-list').innerHTML = `<div class="fs-12" style="color:#fff;padding:8px 10px">${err.message}</div>`;
+  }
+}
+
+function commentRow(cm) {
+  const isAi = cm.isAi;
+  const name = isAi ? 'Medina AI' : (cm.userId?.fullName || 'Mahasiswa');
+  const sourcesHtml = (cm.sources || []).filter(s => s.bookTitle).map(s => `<div class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</div>`).join('');
+  const row = document.createElement('div');
+  row.className = 'bubble-row';
+  row.innerHTML = `
+    <div class="av av-sm" style="${isAi ? 'background:var(--blue);color:#fff' : ''}">${isAi ? 'M' : initials(name)}</div>
+    <div>
+      <div class="fs-12 fw-700 mb-6 ${isAi ? 'text-blue' : ''}"></div>
+      <div class="bubble bubble-ai" style="${isAi ? 'background:var(--blue-soft)' : ''}"></div>
+    </div>
+  `;
+  row.querySelector('.fs-12').textContent = name;
+  row.querySelector('.bubble').textContent = cm.content;
+  if (sourcesHtml) row.querySelector('.bubble').insertAdjacentHTML('beforeend', sourcesHtml);
+  return row;
+}
+
+function renderParticipants(caseDoc) {
+  const container = document.getElementById('case-participants');
+  const uniqueByName = new Map();
+  (caseDoc.comments || []).forEach(cm => {
+    const name = cm.isAi ? 'Medina AI' : (cm.userId?.fullName || 'Mahasiswa');
+    const key = cm.isAi ? '__ai__' : (cm.userId?._id || name);
+    const entry = uniqueByName.get(key) || { name, isAi: cm.isAi, count: 0 };
+    entry.count += 1;
+    uniqueByName.set(key, entry);
+  });
+  const list = [...uniqueByName.values()];
+  if (!list.length) {
+    container.innerHTML = '<div class="fs-12 text-mut">Belum ada yang berkomentar.</div>';
+    return;
+  }
+  container.innerHTML = list.map((p, i) => `
+    <div class="rp-item" style="margin-bottom:12px">
+      <div class="av av-md" style="${p.isAi ? 'background:var(--blue);color:#fff' : ''}">${p.isAi ? '<i class=\"ti ti-robot\" aria-hidden=\"true\"></i>' : initials(p.name)}</div>
+      <div><div class="rp-item-title"></div><div class="rp-item-sub">${p.isAi ? 'Fasilitator Socratic' : `${p.count} komentar`}</div></div>
+    </div>
+  `).join('');
+  container.querySelectorAll('.rp-item-title').forEach((el, i) => { el.textContent = list[i].name; });
+}
+
+async function openCase(id) {
+  activeCaseId = id;
+  renderThreadList();
+
+  const scroll = document.getElementById('case-detail-scroll');
+  scroll.innerHTML = '<div class="fs-13 text-mut" style="padding:20px">Memuat kasus...</div>';
+  document.getElementById('comment-composer').style.display = 'none';
+
+  try {
+    const { case: c } = await apiFetch(`/cases/${id}`);
+    document.getElementById('case-title').textContent = c.title;
+    document.getElementById('case-meta').textContent = `Diposting oleh ${c.postedBy?.fullName || 'Mahasiswa'} · ${c.category || 'Umum'} · ${timeAgo(c.createdAt)}`;
+
+    scroll.innerHTML = '';
+    const caseBox = document.createElement('div');
+    caseBox.className = 'card';
+    caseBox.style.background = 'var(--blue-softer)';
+    caseBox.innerHTML = `
+      <div class="flex items-center gap-8 mb-14">
+        <i class="ti ti-user-heart text-blue" style="font-size:19px" aria-hidden="true"></i>
+        <span class="card-title" style="font-size:14px">Deskripsi Kasus</span>
+      </div>
+      <div class="fs-13" style="white-space:pre-wrap;line-height:1.7"></div>
+    `;
+    caseBox.querySelector('.fs-13').textContent = c.content;
+    scroll.appendChild(caseBox);
+
+    const daySep = document.createElement('div');
+    daySep.className = 'day-sep';
+    daySep.textContent = `${(c.comments || []).length} komentar diskusi`;
+    scroll.appendChild(daySep);
+
+    (c.comments || []).forEach(cm => scroll.appendChild(commentRow(cm)));
+    scroll.scrollTop = scroll.scrollHeight;
+
+    renderParticipants(c);
+    document.getElementById('comment-composer').style.display = 'flex';
+  } catch (err) {
+    scroll.innerHTML = `<div class="fs-13" style="color:var(--red);padding:20px">${err.message}</div>`;
+  }
+}
+
+async function sendComment() {
+  const input = document.getElementById('cin');
+  const content = input.value.trim();
+  if (!content || !activeCaseId) return;
+  input.value = '';
+
+  const scroll = document.getElementById('case-detail-scroll');
+  try {
+    await apiFetch(`/cases/${activeCaseId}/comments`, { method: 'POST', body: JSON.stringify({ content }) });
+    const { case: c } = await apiFetch(`/cases/${activeCaseId}`);
+    const idx = allCases.findIndex(x => x._id === activeCaseId);
+    if (idx >= 0) allCases[idx] = c;
+    renderThreadList();
+    openCase(activeCaseId);
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+async function askHint() {
+  if (!activeCaseId) return;
+  const btn = document.getElementById('hint-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i>';
+  try {
+    await apiFetch(`/cases/${activeCaseId}/ask-ai`, { method: 'POST' });
+    const { case: c } = await apiFetch(`/cases/${activeCaseId}`);
+    const idx = allCases.findIndex(x => x._id === activeCaseId);
+    if (idx >= 0) allCases[idx] = c;
+    renderThreadList();
+    openCase(activeCaseId);
+  } catch (err) {
+    toastError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-robot" aria-hidden="true"></i>';
+  }
+}
+
+function closeCaseModal() {
+  hide('m-case');
+  document.getElementById('case-title-input').value = '';
+  document.getElementById('case-content-input').value = '';
+  document.getElementById('create-case-error').style.display = 'none';
+}
+
+async function submitNewCase() {
+  const errorEl = document.getElementById('create-case-error');
+  errorEl.style.display = 'none';
+
+  const title = document.getElementById('case-title-input').value.trim();
+  const category = document.getElementById('case-category-input').value;
+  const content = document.getElementById('case-content-input').value.trim();
+
+  if (!title || !content) {
+    errorEl.textContent = 'Judul dan deskripsi kasus wajib diisi';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const { case: c } = await apiFetch('/cases', { method: 'POST', body: JSON.stringify({ title, category, content }) });
+    closeCaseModal();
+    await loadCases();
+    openCase(c._id);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+loadCases();
+</script>
+
+</body>
+</html>

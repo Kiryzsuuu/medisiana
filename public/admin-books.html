@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana Admin — Kelola Buku</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Admin Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.16);border-radius:11px;padding:8px 14px;margin-bottom:22px;font-size:11.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px">
+        <i class="ti ti-shield-lock" aria-hidden="true"></i> Panel Admin
+      </div>
+      <div class="nav-label">Kelola</div>
+      <nav class="nav-menu">
+        <a href="admin-books.html" class="nav-link active"><i class="ti ti-books" aria-hidden="true"></i> Kelola Buku</a>
+        <a href="admin-users.html" class="nav-link"><i class="ti ti-users" aria-hidden="true"></i> Kelola User</a>
+        <a href="admin-banners.html" class="nav-link"><i class="ti ti-photo" aria-hidden="true"></i> Kelola Banner</a>
+        <a href="admin-ai.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Konfigurasi AI</a>
+        <a href="admin-analytics.html" class="nav-link"><i class="ti ti-chart-histogram" aria-hidden="true"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white">AD</div>
+          <div>
+            <div class="side-user-name">Administrator</div>
+            <div class="side-user-role">Admin</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Kelola Buku & RAG</div>
+          <div class="head-sub">Sumber pengetahuan Medina AI</div>
+        </div>
+        <button class="btn btn-primary" onclick="show('m-up')"><i class="ti ti-upload" aria-hidden="true"></i> Upload PDF</button>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="grid grid-3 mb-22">
+          <div class="stat">
+            <div class="stat-ic sb-blue"><i class="ti ti-books" aria-hidden="true"></i></div>
+            <div class="stat-num" id="stat-total">—</div>
+            <div class="stat-lbl">Total Buku</div>
+          </div>
+          <div class="stat">
+            <div class="stat-ic sb-green"><i class="ti ti-database" aria-hidden="true"></i></div>
+            <div class="stat-num" id="stat-chunks">—</div>
+            <div class="stat-lbl">Total Chunks RAG</div>
+          </div>
+          <div class="stat">
+            <div class="stat-ic sb-purple"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
+            <div class="stat-num" id="stat-active">—</div>
+            <div class="stat-lbl">Buku Aktif</div>
+          </div>
+        </div>
+
+        <div class="card mb-18" style="padding:14px 18px">
+          <div class="flex gap-10 items-center" style="flex-wrap:wrap">
+            <div class="head-search flex-1" style="width:auto;min-width:180px">
+              <i class="ti ti-search" aria-hidden="true"></i>
+              <input id="filter-search" placeholder="Cari judul atau penulis..." oninput="debouncedLoad()" />
+            </div>
+            <select class="select" id="filter-category" style="width:170px" onchange="loadBooks()">
+              <option value="">Semua Kategori</option>
+              <option>Interna</option><option>Fisiologi</option><option>Patologi</option>
+              <option>Farmakologi</option><option>Anatomi</option><option>Kurikulum</option><option>Referensi</option>
+            </select>
+            <select class="select" id="filter-status" style="width:150px" onchange="loadBooks()">
+              <option value="">Semua Status</option>
+              <option value="done">Siap</option>
+              <option value="processing">Indexing</option>
+              <option value="pending">Menunggu</option>
+              <option value="error">Error</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tbl-card">
+          <table class="tbl">
+            <thead>
+              <tr><th>Buku</th><th>Kategori</th><th>Chunks</th><th>Status</th><th>Aktif</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="book-rows">
+              <tr><td colspan="6" class="fs-13 text-mut" style="padding:20px;text-align:center">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="fs-12 text-mut mt-18" id="list-count"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal Upload -->
+<div class="modal-bg" id="m-up">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Upload Buku PDF</div>
+      <button class="rpanel-close" onclick="closeUploadModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div id="drop-zone" style="border:2.5px dashed var(--blue-mid);border-radius:16px;padding:34px;text-align:center;background:var(--blue-softer);cursor:pointer;margin-bottom:18px" onclick="document.getElementById('fi').click()">
+      <div class="empty-ic" style="width:60px;height:60px;font-size:28px;margin-bottom:12px"><i class="ti ti-cloud-upload" aria-hidden="true"></i></div>
+      <div class="fw-700 fs-13 mb-6" id="drop-zone-label">Klik atau drag & drop PDF</div>
+      <div class="fs-12 text-mut">Maks. 50MB · Format PDF</div>
+      <input type="file" id="fi" accept=".pdf" style="display:none" onchange="onFilePicked()" />
+    </div>
+    <p id="upload-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+    <div class="field"><label class="field-label">Judul Buku</label><input class="input" id="book-title" placeholder="cth: Harrison's Internal Medicine" /></div>
+    <div class="field"><label class="field-label">Penulis</label><input class="input" id="book-author" placeholder="cth: Kasper et al." /></div>
+    <div class="field"><label class="field-label">Kategori</label><select class="select" id="book-category"><option>Interna</option><option>Fisiologi</option><option>Patologi</option><option>Farmakologi</option><option>Anatomi</option><option>Kurikulum</option><option>Referensi</option></select></div>
+    <div class="field"><label class="field-label">Angkatan Aktif (opsional)</label><input class="input" id="book-activefor" placeholder="cth: 2022,2023 — kosongkan untuk semua angkatan" /></div>
+    <div class="flex gap-10 mt-18">
+      <button class="btn btn-ghost flex-1" onclick="closeUploadModal()">Batal</button>
+      <button class="btn btn-primary flex-1" id="upload-submit-btn" onclick="startUpload()"><i class="ti ti-upload" aria-hidden="true"></i> Upload & Index</button>
+    </div>
+  </div>
+</div>
+
+<script>
+requireAuth('admin');
+
+let debounceTimer = null;
+function debouncedLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadBooks, 300); }
+
+function show(id){ document.getElementById(id).classList.add('show'); }
+function hide(id){ document.getElementById(id).classList.remove('show'); }
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function statusChip(book) {
+  if (book.indexStatus === 'done') return '<span class="chip chip-green">Siap</span>';
+  if (book.indexStatus === 'processing') return '<span class="chip chip-amber"><i class="ti ti-loader-2" aria-hidden="true"></i> Indexing...</span>';
+  if (book.indexStatus === 'error') return `<span class="chip chip-red" title="${escapeHtml(book.indexError || '')}">Error</span>`;
+  return '<span class="chip chip-gray">Menunggu</span>';
+}
+
+async function loadBooks() {
+  const search = document.getElementById('filter-search').value.trim().toLowerCase();
+  const category = document.getElementById('filter-category').value;
+  const status = document.getElementById('filter-status').value;
+  const errorEl = document.getElementById('page-error');
+  const rows = document.getElementById('book-rows');
+  errorEl.style.display = 'none';
+
+  const params = new URLSearchParams();
+  if (category) params.set('category', category);
+
+  try {
+    const { books } = await apiFetch(`/books?${params.toString()}`);
+    let filtered = books;
+    if (search) filtered = filtered.filter(b => b.title.toLowerCase().includes(search) || (b.author || '').toLowerCase().includes(search));
+    if (status) filtered = filtered.filter(b => b.indexStatus === status);
+
+    document.getElementById('stat-total').textContent = books.length;
+    document.getElementById('stat-chunks').textContent = books.reduce((sum, b) => sum + (b.totalChunks || 0), 0).toLocaleString('id-ID');
+    document.getElementById('stat-active').textContent = books.filter(b => b.isActive).length;
+    document.getElementById('list-count').textContent = `Menampilkan ${filtered.length} dari ${books.length} buku`;
+
+    if (!filtered.length) {
+      rows.innerHTML = `<tr><td colspan="6" class="fs-13 text-mut" style="padding:20px;text-align:center">Tidak ada buku yang cocok</td></tr>`;
+      return;
+    }
+
+    rows.innerHTML = filtered.map(b => `
+      <tr>
+        <td>
+          <div class="flex items-center gap-14">
+            <div class="row-ic sb-blue" style="width:38px;height:38px;font-size:17px"><i class="ti ti-book" aria-hidden="true"></i></div>
+            <div><div class="fw-700"></div><div class="fs-12 text-mut"></div></div>
+          </div>
+        </td>
+        <td>${b.category ? `<span class="chip chip-gray">${escapeHtml(b.category)}</span>` : '<span class="text-mut">—</span>'}</td>
+        <td class="fw-700">${b.totalChunks ? b.totalChunks.toLocaleString('id-ID') : '<span class="text-mut">—</span>'}</td>
+        <td>${statusChip(b)}</td>
+        <td><input type="checkbox" ${b.isActive ? 'checked' : ''} style="accent-color:var(--blue)" onchange="toggleActive('${b._id}', this.checked)" /></td>
+        <td>
+          <div class="flex gap-6">
+            <button class="icon-btn" style="width:34px;height:34px;font-size:16px" title="Re-index" onclick="reindexBook('${b._id}')"><i class="ti ti-refresh" aria-hidden="true"></i></button>
+            <button class="icon-btn" style="width:34px;height:34px;font-size:16px" title="Lihat PDF" onclick="window.open('/api/books/${b._id}/file?token=' + encodeURIComponent(getToken()), '_blank')"><i class="ti ti-eye" aria-hidden="true"></i></button>
+            <button class="icon-btn" style="width:34px;height:34px;font-size:16px;color:var(--red)" title="Hapus" onclick="deleteBook('${b._id}', '${escapeHtml(b.title)}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    rows.querySelectorAll('.fw-700').forEach((el, i) => { el.textContent = filtered[i].title; });
+    rows.querySelectorAll('.fs-12.text-mut').forEach((el, i) => { el.textContent = `${filtered[i].author || ''}${filtered[i].edition ? ` · ${filtered[i].edition}` : ''}`; });
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+    rows.innerHTML = '';
+  }
+}
+
+async function toggleActive(id, isActive) {
+  try {
+    await apiFetch(`/books/${id}`, { method: 'PATCH', body: JSON.stringify({ isActive }) });
+  } catch (err) {
+    toastError(err.message);
+    loadBooks();
+  }
+}
+
+async function reindexBook(id) {
+  if (!(await confirmDialog('Re-index buku ini? Chunks lama akan dihapus dan dibuat ulang.', { title: 'Re-index Buku', confirmLabel: 'Ya, Re-index', danger: false }))) return;
+  try {
+    await apiFetch(`/books/${id}/reindex`, { method: 'POST' });
+    loadBooks();
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+async function deleteBook(id, title) {
+  if (!(await confirmDialog(`Hapus buku "${title}" beserta seluruh chunks RAG-nya? Tindakan ini tidak bisa dibatalkan.`, { title: 'Hapus Buku', confirmLabel: 'Ya, Hapus' }))) return;
+  try {
+    await apiFetch(`/books/${id}`, { method: 'DELETE' });
+    loadBooks();
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+function onFilePicked() {
+  const file = document.getElementById('fi').files[0];
+  document.getElementById('drop-zone-label').textContent = file ? file.name : 'Klik atau drag & drop PDF';
+}
+
+function closeUploadModal() {
+  hide('m-up');
+  document.getElementById('fi').value = '';
+  document.getElementById('book-title').value = '';
+  document.getElementById('book-author').value = '';
+  document.getElementById('book-activefor').value = '';
+  document.getElementById('drop-zone-label').textContent = 'Klik atau drag & drop PDF';
+  document.getElementById('upload-error').style.display = 'none';
+}
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--blue)'; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--blue-mid)'; });
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = 'var(--blue-mid)';
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    document.getElementById('fi').files = e.dataTransfer.files;
+    onFilePicked();
+  }
+});
+
+async function startUpload() {
+  const errorEl = document.getElementById('upload-error');
+  errorEl.style.display = 'none';
+
+  const file = document.getElementById('fi').files[0];
+  const title = document.getElementById('book-title').value.trim();
+  const author = document.getElementById('book-author').value.trim();
+  const category = document.getElementById('book-category').value;
+  const activeFor = document.getElementById('book-activefor').value.trim();
+
+  if (!file || !title) {
+    errorEl.textContent = 'File PDF dan judul buku wajib diisi';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('title', title);
+  formData.append('author', author);
+  formData.append('category', category);
+  if (activeFor) formData.append('activeFor', activeFor);
+
+  const btn = document.getElementById('upload-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Mengunggah...';
+
+  try {
+    await apiFetch('/books', { method: 'POST', body: formData });
+    closeUploadModal();
+    loadBooks();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-upload" aria-hidden="true"></i> Upload & Index';
+  }
+}
+
+loadBooks();
+</script>
+
+</body>
+</html>

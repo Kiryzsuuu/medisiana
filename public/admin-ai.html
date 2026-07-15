@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana Admin — Konfigurasi AI</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.16);border-radius:11px;padding:8px 14px;margin-bottom:22px;font-size:11.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px">
+        <i class="ti ti-shield-lock" aria-hidden="true"></i> Panel Admin
+      </div>
+      <div class="nav-label">Kelola</div>
+      <nav class="nav-menu">
+        <a href="admin-books.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Kelola Buku</a>
+        <a href="admin-users.html" class="nav-link"><i class="ti ti-users" aria-hidden="true"></i> Kelola User</a>
+        <a href="admin-banners.html" class="nav-link"><i class="ti ti-photo" aria-hidden="true"></i> Kelola Banner</a>
+        <a href="admin-ai.html" class="nav-link active"><i class="ti ti-robot" aria-hidden="true"></i> Konfigurasi AI</a>
+        <a href="admin-analytics.html" class="nav-link"><i class="ti ti-chart-histogram" aria-hidden="true"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white">AD</div>
+          <div><div class="side-user-name">Administrator</div><div class="side-user-role">Admin</div></div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Konfigurasi Medina AI</div>
+          <div class="head-sub flex items-center gap-6"><span class="dot dot-live"></span> Pencarian materi berbasis kata kunci MongoDB (bukan embedding)</div>
+        </div>
+        <button class="btn btn-primary" onclick="saveConfig()" id="save-btn"><i class="ti ti-device-floppy" aria-hidden="true"></i> Simpan</button>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="config-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="col-main">
+
+          <div>
+            <div class="card mb-18">
+              <div class="card-head">
+                <div class="card-title">System Prompt Medina</div>
+                <span class="chip chip-blue">Chat Utama</span>
+              </div>
+              <textarea class="textarea" id="prompt-chat" rows="11" style="font-family:'SF Mono',monospace;font-size:12px;line-height:1.7"></textarea>
+              <div class="fs-11 text-mut mt-10">Placeholder <code>{{rag_context}}</code> dan <code>{{chat_history}}</code> wajib dipertahankan.</div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">Pesan Fallback</div>
+                <span class="chip chip-amber">RAG tidak ditemukan</span>
+              </div>
+              <textarea class="textarea" id="prompt-fallback" rows="6" style="font-size:12.5px;font-family:'SF Mono',monospace"></textarea>
+            </div>
+          </div>
+
+          <div>
+            <div class="card mb-18">
+              <div class="card-head">
+                <div class="card-title">Provider AI</div>
+                <span class="chip chip-blue" id="provider-active-chip">—</span>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Pilih Provider</label>
+                <select class="select" id="ai-provider" onchange="onProviderChange()">
+                  <option value="anthropic">Anthropic (Claude)</option>
+                  <option value="openai">OpenAI (GPT)</option>
+                  <option value="gemini">Google Gemini</option>
+                  <option value="groq">Groq</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Model (opsional)</label>
+                <input class="input" id="ai-model" placeholder="Kosongkan untuk pakai default" />
+                <div class="fs-11 text-mut mt-6" id="ai-model-default"></div>
+              </div>
+
+              <div class="field" style="margin-bottom:0">
+                <label class="field-label flex justify-between">
+                  API Key <span class="fs-11 fw-700" id="ai-key-status">—</span>
+                </label>
+                <input class="input" id="ai-key" type="password" placeholder="Masukkan API key baru untuk mengganti..." autocomplete="off" />
+                <div class="fs-11 text-mut mt-6">Kosongkan kalau tidak ingin mengubah key yang sudah tersimpan. Key tidak pernah ditampilkan kembali setelah disimpan, demi keamanan.</div>
+              </div>
+            </div>
+
+            <div class="card mb-18">
+              <div class="card-title mb-18">Pengaturan RAG</div>
+              <div class="field">
+                <label class="field-label flex justify-between">Top-K Chunks <span class="text-blue" id="val-topk">5</span></label>
+                <input type="range" id="range-topk" min="1" max="10" value="5" style="width:100%;accent-color:var(--blue)" oninput="document.getElementById('val-topk').textContent=this.value" />
+                <div class="fs-11 text-mut mt-10">Jumlah chunk buku (hasil pencarian kata kunci) yang diambil per pertanyaan. Kalau tidak ada chunk yang cocok sama sekali → fallback message digunakan.</div>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label class="field-label flex justify-between">Max Output Tokens <span class="text-blue" id="val-maxtokens">1000</span></label>
+                <input type="range" id="range-maxtokens" min="300" max="2000" step="100" value="1000" style="width:100%;accent-color:var(--blue)" oninput="document.getElementById('val-maxtokens').textContent=this.value" />
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title mb-14">Buku Aktif per Angkatan</div>
+              <div class="field" style="margin-bottom:14px">
+                <select class="select" id="books-angkatan" onchange="renderBooksPanel()">
+                  <option value="">Semua Angkatan</option>
+                  <option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option>
+                  <option value="2022">2022</option><option value="2021">2021</option>
+                </select>
+              </div>
+              <div id="books-panel"><div class="fs-13 text-mut">Memuat buku...</div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+requireAuth('admin');
+
+let allBooks = [];
+let promptDefaults = { CHAT: '', FALLBACK: '' };
+let providerDefaults = {};
+let apiKeyStatus = {};
+
+const PROVIDER_LABEL = { anthropic: 'Anthropic (Claude)', openai: 'OpenAI (GPT)', gemini: 'Google Gemini', groq: 'Groq' };
+
+function onProviderChange() {
+  const provider = document.getElementById('ai-provider').value;
+  document.getElementById('provider-active-chip').textContent = PROVIDER_LABEL[provider] || provider;
+  document.getElementById('ai-model-default').textContent = `Default: ${providerDefaults[provider] || '—'}`;
+  document.getElementById('ai-key').value = '';
+
+  const status = apiKeyStatus[provider] || 'none';
+  const statusEl = document.getElementById('ai-key-status');
+  if (status === 'db') { statusEl.textContent = '✓ Tersimpan (dari panel admin)'; statusEl.style.color = 'var(--green)'; }
+  else if (status === 'env') { statusEl.textContent = '✓ Tersimpan (dari .env)'; statusEl.style.color = 'var(--green)'; }
+  else { statusEl.textContent = '✗ Belum diatur'; statusEl.style.color = 'var(--red)'; }
+}
+
+async function loadConfig() {
+  const errorEl = document.getElementById('config-error');
+  try {
+    const res = await apiFetch('/admin/config');
+    const { config } = res;
+    promptDefaults = res.promptDefaults || { CHAT: '', FALLBACK: '' };
+    providerDefaults = res.providerDefaults || {};
+    apiKeyStatus = res.apiKeyStatus || {};
+
+    document.getElementById('range-topk').value = config.topK;
+    document.getElementById('val-topk').textContent = config.topK;
+    document.getElementById('range-maxtokens').value = config.maxTokens;
+    document.getElementById('val-maxtokens').textContent = config.maxTokens;
+
+    // Show the actual active prompt (custom override, or the built-in default)
+    // so the admin edits from a real starting point instead of a blank box.
+    document.getElementById('prompt-chat').value = (config.promptOverrides && config.promptOverrides.CHAT) || promptDefaults.CHAT;
+    document.getElementById('prompt-fallback').value = (config.promptOverrides && config.promptOverrides.FALLBACK) || promptDefaults.FALLBACK;
+
+    document.getElementById('ai-provider').value = config.aiProvider || 'anthropic';
+    document.getElementById('ai-model').value = config.aiModel || '';
+    onProviderChange();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+async function saveConfig() {
+  const errorEl = document.getElementById('config-error');
+  errorEl.style.display = 'none';
+  const btn = document.getElementById('save-btn');
+
+  const chatPrompt = document.getElementById('prompt-chat').value.trim();
+  const fallbackPrompt = document.getElementById('prompt-fallback').value.trim();
+  // Only store as an "override" if it actually differs from the built-in default —
+  // otherwise leave promptOverrides empty so future default updates still apply.
+  const promptOverrides = {};
+  if (chatPrompt && chatPrompt !== promptDefaults.CHAT) promptOverrides.CHAT = chatPrompt;
+  if (fallbackPrompt && fallbackPrompt !== promptDefaults.FALLBACK) promptOverrides.FALLBACK = fallbackPrompt;
+
+  const provider = document.getElementById('ai-provider').value;
+  const newKey = document.getElementById('ai-key').value.trim();
+  const apiKeys = {};
+  if (newKey) apiKeys[provider] = newKey;
+
+  btn.disabled = true;
+  try {
+    const res = await apiFetch('/admin/config', {
+      method: 'PUT',
+      body: JSON.stringify({
+        topK: Number(document.getElementById('range-topk').value),
+        maxTokens: Number(document.getElementById('range-maxtokens').value),
+        promptOverrides,
+        aiProvider: provider,
+        aiModel: document.getElementById('ai-model').value.trim(),
+        apiKeys,
+      }),
+    });
+    apiKeyStatus = res.apiKeyStatus || apiKeyStatus;
+    onProviderChange();
+    toastSuccess('Konfigurasi berhasil disimpan!');
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+async function loadBooksPanel() {
+  try {
+    const { books } = await apiFetch('/books');
+    allBooks = books;
+    renderBooksPanel();
+  } catch (err) {
+    document.getElementById('books-panel').innerHTML = `<div class="fs-12" style="color:var(--red)">${err.message}</div>`;
+  }
+}
+
+function renderBooksPanel() {
+  const panel = document.getElementById('books-panel');
+  const angkatan = document.getElementById('books-angkatan').value;
+
+  if (!allBooks.length) {
+    panel.innerHTML = '<div class="fs-13 text-mut">Belum ada buku diunggah.</div>';
+    return;
+  }
+
+  panel.innerHTML = allBooks.map((b) => {
+    const isAllAngkatan = !b.activeFor || b.activeFor.length === 0;
+    const checked = angkatan ? (isAllAngkatan || b.activeFor.includes(Number(angkatan))) : b.isActive;
+    const statusLabel = b.indexStatus === 'done'
+      ? `${escapeHtml(b.category || '')} · ${(b.totalChunks || 0).toLocaleString('id-ID')} chunks`
+      : `${escapeHtml(b.category || '')} · ${b.indexStatus === 'processing' ? 'Sedang diindex' : b.indexStatus === 'error' ? 'Gagal diindex' : 'Menunggu index'}`;
+    return `
+      <label class="flex items-center gap-10 mb-10" style="cursor:pointer;padding:11px;border-radius:12px;border:1px solid var(--border)">
+        <input type="checkbox" ${checked ? 'checked' : ''} style="accent-color:var(--blue)" onchange="toggleBookForAngkatan('${b._id}', this.checked)" />
+        <div><div class="fw-700 fs-13"></div><div class="fs-11 text-mut">${statusLabel}</div></div>
+      </label>
+    `;
+  }).join('');
+  panel.querySelectorAll('.fw-700.fs-13').forEach((el, i) => { el.textContent = allBooks[i].title; });
+}
+
+async function toggleBookForAngkatan(bookId, checked) {
+  const angkatan = document.getElementById('books-angkatan').value;
+  const book = allBooks.find((b) => b._id === bookId);
+  if (!book) return;
+
+  try {
+    if (!angkatan) {
+      await apiFetch(`/books/${bookId}`, { method: 'PATCH', body: JSON.stringify({ isActive: checked }) });
+      book.isActive = checked;
+      return;
+    }
+
+    const num = Number(angkatan);
+    let activeFor = book.activeFor && book.activeFor.length ? [...book.activeFor] : [];
+    if (checked) {
+      if (!activeFor.includes(num)) activeFor.push(num);
+    } else if (activeFor.length === 0) {
+      activeFor = [2021, 2022, 2023, 2024, 2025].filter((y) => y !== num);
+    } else {
+      activeFor = activeFor.filter((y) => y !== num);
+    }
+
+    await apiFetch(`/books/${bookId}`, { method: 'PATCH', body: JSON.stringify({ activeFor }) });
+    book.activeFor = activeFor;
+  } catch (err) {
+    toastError(err.message);
+    renderBooksPanel();
+  }
+}
+
+loadConfig();
+loadBooksPanel();
+</script>
+
+</body>
+</html>

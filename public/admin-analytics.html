@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana Admin — Analytics</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.16);border-radius:11px;padding:8px 14px;margin-bottom:22px;font-size:11.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px">
+        <i class="ti ti-shield-lock" aria-hidden="true"></i> Panel Admin
+      </div>
+      <div class="nav-label">Kelola</div>
+      <nav class="nav-menu">
+        <a href="admin-books.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Kelola Buku</a>
+        <a href="admin-users.html" class="nav-link"><i class="ti ti-users" aria-hidden="true"></i> Kelola User</a>
+        <a href="admin-banners.html" class="nav-link"><i class="ti ti-photo" aria-hidden="true"></i> Kelola Banner</a>
+        <a href="admin-ai.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Konfigurasi AI</a>
+        <a href="admin-analytics.html" class="nav-link active"><i class="ti ti-chart-histogram" aria-hidden="true"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white">AD</div>
+          <div><div class="side-user-name">Administrator</div><div class="side-user-role">Admin</div></div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Analytics</div>
+          <div class="head-sub">Ringkasan penggunaan platform · sepanjang waktu</div>
+        </div>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="grid grid-4 mb-22">
+          <div class="stat"><div class="stat-ic sb-blue"><i class="ti ti-message-2" aria-hidden="true"></i></div><div class="stat-num" id="stat-messages">—</div><div class="stat-lbl">Pesan ke AI</div></div>
+          <div class="stat"><div class="stat-ic sb-green"><i class="ti ti-users" aria-hidden="true"></i></div><div class="stat-num" id="stat-active-users">—</div><div class="stat-lbl">User Aktif</div><div class="stat-chg text-mut" id="stat-active-trend"></div></div>
+          <div class="stat"><div class="stat-ic sb-amber"><i class="ti ti-message-circle" aria-hidden="true"></i></div><div class="stat-num" id="stat-sessions">—</div><div class="stat-lbl">Total Sesi Chat</div></div>
+          <div class="stat"><div class="stat-ic sb-purple"><i class="ti ti-target-arrow" aria-hidden="true"></i></div><div class="stat-num" id="stat-hitrate">—</div><div class="stat-lbl">RAG Hit Rate</div><div class="stat-chg text-mut" id="stat-fallback-trend"></div></div>
+        </div>
+
+        <div class="col-main mb-18">
+          <div class="card">
+            <div class="card-head"><div class="card-title">Topik Paling Sering Ditanya</div></div>
+            <div id="topics-list"><div class="fs-13 text-mut">Memuat...</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div class="card-title">Mahasiswa Teraktif</div></div>
+            <div id="leaderboard-list"><div class="fs-13 text-mut">Memuat...</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">Pertanyaan Tidak Terjawab (RAG Miss)</div><span class="chip chip-amber" id="ragmiss-count">— total</span></div>
+          <div class="fs-12 text-mut mb-14">Pertanyaan ini sering ditanya tapi tidak ada di buku. Pertimbangkan upload buku yang relevan.</div>
+          <div class="tags mb-18" id="ragmiss-list"><div class="fs-13 text-mut">Memuat...</div></div>
+          <a href="admin-books.html"><button class="btn btn-primary"><i class="ti ti-upload" aria-hidden="true"></i> Upload Buku Baru</button></a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+requireAuth('admin');
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+async function loadAnalytics() {
+  const errorEl = document.getElementById('page-error');
+  try {
+    const stats = await apiFetch('/admin/analytics');
+    document.getElementById('stat-messages').textContent = stats.totalMessages.toLocaleString('id-ID');
+    document.getElementById('stat-active-users').textContent = stats.activeUsers.toLocaleString('id-ID');
+    document.getElementById('stat-active-trend').textContent = `dari ${stats.totalUsers} mahasiswa`;
+    document.getElementById('stat-sessions').textContent = stats.totalSessions.toLocaleString('id-ID');
+
+    const hitRate = stats.totalMessages > 0 ? Math.round((1 - stats.ragMissCount / stats.totalMessages) * 100) : 100;
+    document.getElementById('stat-hitrate').textContent = `${hitRate}%`;
+    document.getElementById('stat-fallback-trend').textContent = `${stats.ragMissCount} fallback`;
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+async function loadTopics() {
+  const container = document.getElementById('topics-list');
+  try {
+    const { topics } = await apiFetch('/admin/analytics/topics');
+    if (!topics.length) {
+      container.innerHTML = '<div class="fs-13 text-mut">Belum ada data sesi chat.</div>';
+      return;
+    }
+    const max = Math.max(...topics.map(t => t.count));
+    container.innerHTML = topics.slice(0, 8).map(t => `
+      <div class="mb-14">
+        <div class="flex justify-between mb-6">
+          <span class="fs-13 fw-700"></span>
+          <span class="fs-12 text-blue fw-700">${t.count}</span>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:${Math.round((t.count / max) * 100)}%"></div></div>
+      </div>
+    `).join('');
+    container.querySelectorAll('.fs-13.fw-700').forEach((el, i) => { el.textContent = topics[i]._id || '(Tanpa judul)'; });
+  } catch (err) {
+    container.innerHTML = `<div class="fs-12" style="color:var(--red)">${err.message}</div>`;
+  }
+}
+
+async function loadLeaderboard() {
+  const container = document.getElementById('leaderboard-list');
+  try {
+    const { leaderboard } = await apiFetch('/admin/analytics/active-students');
+    if (!leaderboard.length) {
+      container.innerHTML = '<div class="fs-13 text-mut">Belum ada data.</div>';
+      return;
+    }
+    container.innerHTML = leaderboard.map((u, i) => `
+      <div class="row" style="padding:10px 0">
+        <div class="fw-800 ${i === 0 ? '' : 'text-mut'}" style="width:22px;${i === 0 ? 'color:var(--amber)' : ''}">${i + 1}</div>
+        <div class="av av-sm sb-blue"></div>
+        <div class="flex-1"><div class="fs-13 fw-700"></div><div class="fs-11 text-mut"></div></div>
+        <span class="chip ${i === 0 ? 'chip-blue' : 'chip-gray'}">${u.sessionCount}</span>
+      </div>
+    `).join('');
+    container.querySelectorAll('.av-sm').forEach((el, i) => { el.textContent = initials(leaderboard[i].fullName); });
+    container.querySelectorAll('.fs-13.fw-700').forEach((el, i) => { el.textContent = leaderboard[i].fullName; });
+    container.querySelectorAll('.fs-11.text-mut').forEach((el, i) => { el.textContent = leaderboard[i].angkatan || '—'; });
+  } catch (err) {
+    container.innerHTML = `<div class="fs-12" style="color:var(--red)">${err.message}</div>`;
+  }
+}
+
+async function loadRagMiss() {
+  const container = document.getElementById('ragmiss-list');
+  try {
+    const { misses } = await apiFetch('/admin/analytics/rag-miss');
+    document.getElementById('ragmiss-count').textContent = `${misses.length} total`;
+    if (!misses.length) {
+      container.innerHTML = '<div class="fs-13 text-mut">Belum ada RAG miss tercatat.</div>';
+      return;
+    }
+    const counts = {};
+    misses.forEach(m => { counts[m.question] = (counts[m.question] || 0) + 1; });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 20);
+    container.innerHTML = sorted.map(([q, count]) => `<span class="tag chip-amber"></span>`).join('');
+    container.querySelectorAll('.tag').forEach((el, i) => { el.textContent = `${sorted[i][0]} · ${sorted[i][1]}x`; });
+  } catch (err) {
+    container.innerHTML = `<div class="fs-12" style="color:var(--red)">${err.message}</div>`;
+  }
+}
+
+loadAnalytics();
+loadTopics();
+loadLeaderboard();
+loadRagMiss();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana — Masuk</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="login">
+
+  <!-- Brand side -->
+  <div class="login-brand">
+    <div class="login-particles" aria-hidden="true">
+      <i class="ti ti-stethoscope login-particle"></i>
+      <i class="ti ti-vaccine login-particle"></i>
+      <i class="ti ti-pill login-particle"></i>
+      <i class="ti ti-heartbeat login-particle"></i>
+      <i class="ti ti-dna-2 login-particle"></i>
+      <i class="ti ti-microscope login-particle"></i>
+    </div>
+
+    <div style="position:relative;z-index:1">
+      <div class="brand" style="padding:0">
+        <div class="brand-logo login-logo-pulse"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+    </div>
+
+    <div class="lb-feat">
+      <h1 style="font-size:30px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:32px;letter-spacing:-.5px">
+        Belajar kedokteran<br>lebih cerdas bersama<br>Medina AI
+      </h1>
+
+      <div class="lb-feat-item">
+        <div class="lb-feat-ic"><i class="ti ti-robot" aria-hidden="true"></i></div>
+        <div>
+          <div class="lb-feat-title">Tutor AI Socratis</div>
+          <div class="lb-feat-desc">Medina mendorong kamu berpikir dulu sebelum memberi jawaban.</div>
+        </div>
+      </div>
+      <div class="lb-feat-item">
+        <div class="lb-feat-ic"><i class="ti ti-books" aria-hidden="true"></i></div>
+        <div>
+          <div class="lb-feat-title">Bersumber dari Buku Terverifikasi</div>
+          <div class="lb-feat-desc">Jawaban langsung dari Harrison, Guyton, Robbins, dan buku pilihan admin.</div>
+        </div>
+      </div>
+      <div class="lb-feat-item">
+        <div class="lb-feat-ic"><i class="ti ti-users-group" aria-hidden="true"></i></div>
+        <div>
+          <div class="lb-feat-title">Belajar Kolaboratif</div>
+          <div class="lb-feat-desc">Study room, diskusi kasus klinis, dan tanya Medina bareng teman.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,.6);font-weight:500">
+      © 2025 Medisiana · Platform Edukasi FK
+    </div>
+  </div>
+
+  <!-- Form side -->
+  <div class="login-form-side">
+    <div class="login-form">
+      <h2 class="login-h">Selamat datang 👋</h2>
+      <p class="login-p">Masuk ke akun kamu untuk mulai belajar.</p>
+
+      <div class="field">
+        <label class="field-label">Email kampus</label>
+        <input class="input" id="email" type="email" placeholder="nama@fk.universitasmu.ac.id" />
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="input" id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+      </div>
+
+      <div class="flex items-center justify-between mb-18">
+        <label class="flex items-center gap-8 fs-13 text-soft" style="cursor:pointer">
+          <input type="checkbox" style="accent-color:var(--blue)" /> Ingat saya
+        </label>
+        <span class="link fs-13">Lupa password?</span>
+      </div>
+
+      <p id="login-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin:-8px 0 14px"></p>
+
+      <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Masuk</button>
+
+      <p class="text-mut fs-13 mt-18" style="text-align:center">
+        Belum punya akun? Hubungi admin institusi kamu.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+if (getToken()) {
+  const user = getUser();
+  window.location.href = user?.role === 'admin' ? 'admin-books.html' : 'dashboard.html';
+}
+
+async function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errorEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  errorEl.style.display = 'none';
+
+  if (!email || !password) {
+    errorEl.textContent = 'Email dan password wajib diisi';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Memproses...';
+  try {
+    const { token, user } = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    setSession(token, user);
+    window.location.href = user.role === 'admin' ? 'admin-books.html' : 'dashboard.html';
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Masuk';
+  }
+}
+</script>
+
+</body>
+</html>

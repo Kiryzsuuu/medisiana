@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana Admin — Kelola Banner</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Admin Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.16);border-radius:11px;padding:8px 14px;margin-bottom:22px;font-size:11.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px">
+        <i class="ti ti-shield-lock" aria-hidden="true"></i> Panel Admin
+      </div>
+      <div class="nav-label">Kelola</div>
+      <nav class="nav-menu">
+        <a href="admin-books.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Kelola Buku</a>
+        <a href="admin-users.html" class="nav-link"><i class="ti ti-users" aria-hidden="true"></i> Kelola User</a>
+        <a href="admin-banners.html" class="nav-link active"><i class="ti ti-photo" aria-hidden="true"></i> Kelola Banner</a>
+        <a href="admin-ai.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Konfigurasi AI</a>
+        <a href="admin-analytics.html" class="nav-link"><i class="ti ti-chart-histogram" aria-hidden="true"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white">AD</div>
+          <div>
+            <div class="side-user-name">Administrator</div>
+            <div class="side-user-role">Admin</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Kelola Hero Banner</div>
+          <div class="head-sub">Carousel tips, iklan, & pengumuman di halaman Dashboard mahasiswa</div>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateModal()"><i class="ti ti-plus" aria-hidden="true"></i> Tambah Banner</button>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="card card-flat mb-18" style="background:var(--blue-soft);border-color:var(--blue-mid);padding:15px">
+          <div class="flex gap-8">
+            <i class="ti ti-bulb text-blue" style="font-size:20px;flex-shrink:0" aria-hidden="true"></i>
+            <div class="fs-12 text-soft" style="line-height:1.6">Gunakan gambar rasio <strong>16:9</strong> (mis. 1280×720px) supaya tidak terpotong aneh di carousel. Gambar otomatis dikompres di browser sebelum diunggah supaya ukurannya tetap ringan.</div>
+          </div>
+        </div>
+
+        <div class="grid grid-3" id="banners-grid">
+          <div class="fs-13 text-mut">Memuat banner...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal: Add/Edit Banner -->
+<div class="modal-bg" id="m-banner">
+  <div class="modal" style="width:520px">
+    <div class="modal-head">
+      <div class="modal-title" id="banner-modal-title">Tambah Banner</div>
+      <button class="rpanel-close" onclick="closeBannerModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+
+    <p id="banner-modal-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+    <div id="banner-drop-zone" style="aspect-ratio:16/9;border:2.5px dashed var(--blue-mid);border-radius:16px;background:var(--blue-softer);cursor:pointer;margin-bottom:18px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center" onclick="document.getElementById('banner-file').click()">
+      <div id="banner-drop-placeholder" style="text-align:center;padding:20px">
+        <div class="empty-ic" style="width:52px;height:52px;font-size:24px;margin:0 auto 10px"><i class="ti ti-photo-plus" aria-hidden="true"></i></div>
+        <div class="fw-700 fs-13">Klik atau drag & drop gambar</div>
+        <div class="fs-12 text-mut mt-6">Rasio 16:9 · JPG/PNG · Maks. 5MB</div>
+      </div>
+      <img id="banner-preview-img" style="display:none;width:100%;height:100%;object-fit:cover" />
+      <input type="file" id="banner-file" accept="image/*" style="display:none" onchange="onBannerFilePicked()" />
+    </div>
+
+    <div class="field"><label class="field-label">Judul</label><input class="input" id="banner-title" placeholder="cth: Tips Belajar Efektif Sebelum UAS" /></div>
+    <div class="field"><label class="field-label">Deskripsi (opsional)</label><textarea class="textarea" id="banner-description" rows="2" placeholder="Teks singkat yang muncul di bawah judul..."></textarea></div>
+    <div class="field"><label class="field-label">Link Tujuan (opsional)</label><input class="input" id="banner-link" placeholder="cth: https://... atau chat.html" /></div>
+    <div class="field">
+      <label class="field-label">Urutan Tampil</label>
+      <input class="input" id="banner-order" type="number" value="0" style="width:120px" />
+    </div>
+    <label class="flex items-center gap-10 mb-18" style="cursor:pointer">
+      <input type="checkbox" id="banner-active" checked style="accent-color:var(--blue)" />
+      <span class="fs-13 fw-700">Aktif (tampil di carousel)</span>
+    </label>
+
+    <div class="flex gap-10">
+      <button class="btn btn-ghost flex-1" onclick="closeBannerModal()">Batal</button>
+      <button class="btn btn-primary flex-1" id="banner-submit-btn" onclick="submitBanner()"><i class="ti ti-check" aria-hidden="true"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+requireAuth('admin');
+
+let allBanners = [];
+let editingBannerId = null;
+let pickedImageDataUrl = null;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+async function loadBanners() {
+  const errorEl = document.getElementById('page-error');
+  const grid = document.getElementById('banners-grid');
+  errorEl.style.display = 'none';
+  try {
+    const { banners } = await apiFetch('/banners');
+    allBanners = banners;
+    renderBanners();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+    grid.innerHTML = '';
+  }
+}
+
+function renderBanners() {
+  const grid = document.getElementById('banners-grid');
+  if (!allBanners.length) {
+    grid.innerHTML = '<div class="fs-13 text-mut">Belum ada banner. Tambah banner pertama untuk tampil di Dashboard mahasiswa!</div>';
+    return;
+  }
+  grid.innerHTML = allBanners.map(b => `
+    <div class="room" style="cursor:default;padding:0;overflow:hidden">
+      <div style="aspect-ratio:16/9;background:var(--bg);position:relative">
+        <img src="${b.imageBase64}" style="width:100%;height:100%;object-fit:cover;display:block" />
+        <span class="chip ${b.isActive ? 'chip-green' : 'chip-gray'}" style="position:absolute;top:10px;right:10px">${b.isActive ? 'Aktif' : 'Nonaktif'}</span>
+        <span class="chip chip-blue" style="position:absolute;top:10px;left:10px">#${b.order}</span>
+      </div>
+      <div style="padding:16px">
+        <div class="room-name" style="margin-bottom:4px"></div>
+        <div class="fs-12 text-mut mb-14" style="min-height:16px"></div>
+        <div class="flex gap-6">
+          <button class="btn btn-ghost btn-sm flex-1" onclick="openEditModal('${b._id}')"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+          <button class="icon-btn" style="width:36px;height:36px;color:var(--red)" title="Hapus" onclick="deleteBanner('${b._id}', '${escapeHtml(b.title)}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.room-name').forEach((el, i) => { el.textContent = allBanners[i].title; });
+  grid.querySelectorAll('.fs-12.text-mut.mb-14').forEach((el, i) => { el.textContent = allBanners[i].description || ''; });
+}
+
+function resetBannerForm() {
+  document.getElementById('banner-title').value = '';
+  document.getElementById('banner-description').value = '';
+  document.getElementById('banner-link').value = '';
+  document.getElementById('banner-order').value = '0';
+  document.getElementById('banner-active').checked = true;
+  document.getElementById('banner-file').value = '';
+  document.getElementById('banner-preview-img').style.display = 'none';
+  document.getElementById('banner-drop-placeholder').style.display = 'block';
+  document.getElementById('banner-modal-error').style.display = 'none';
+  pickedImageDataUrl = null;
+}
+
+function openCreateModal() {
+  editingBannerId = null;
+  resetBannerForm();
+  document.getElementById('banner-modal-title').textContent = 'Tambah Banner';
+  document.getElementById('banner-submit-btn').innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Simpan';
+  document.getElementById('m-banner').classList.add('show');
+}
+
+function openEditModal(id) {
+  const banner = allBanners.find(b => b._id === id);
+  if (!banner) return;
+  editingBannerId = id;
+  resetBannerForm();
+  document.getElementById('banner-modal-title').textContent = 'Edit Banner';
+  document.getElementById('banner-submit-btn').innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Simpan Perubahan';
+  document.getElementById('banner-title').value = banner.title;
+  document.getElementById('banner-description').value = banner.description || '';
+  document.getElementById('banner-link').value = banner.linkUrl || '';
+  document.getElementById('banner-order').value = banner.order || 0;
+  document.getElementById('banner-active').checked = banner.isActive;
+  document.getElementById('banner-preview-img').src = banner.imageBase64;
+  document.getElementById('banner-preview-img').style.display = 'block';
+  document.getElementById('banner-drop-placeholder').style.display = 'none';
+  pickedImageDataUrl = banner.imageBase64;
+  document.getElementById('m-banner').classList.add('show');
+}
+
+function closeBannerModal() {
+  document.getElementById('m-banner').classList.remove('show');
+}
+
+// Resize/compress in-browser via canvas so the base64 payload stays small,
+// then letterbox-crop toward 16:9 so the stored image already matches the carousel.
+function processImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const targetRatio = 16 / 9;
+        let sx = 0, sy = 0, sw = img.width, sh = img.height;
+        const currentRatio = sw / sh;
+        if (currentRatio > targetRatio) {
+          sw = sh * targetRatio;
+          sx = (img.width - sw) / 2;
+        } else if (currentRatio < targetRatio) {
+          sh = sw / targetRatio;
+          sy = (img.height - sh) / 2;
+        }
+
+        const maxWidth = 1280;
+        const outWidth = Math.min(maxWidth, sw);
+        const outHeight = outWidth / targetRatio;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = outWidth;
+        canvas.height = outHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outWidth, outHeight);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function onBannerFilePicked() {
+  const file = document.getElementById('banner-file').files[0];
+  if (!file) return;
+  const errorEl = document.getElementById('banner-modal-error');
+  errorEl.style.display = 'none';
+
+  if (file.size > 5 * 1024 * 1024) {
+    errorEl.textContent = 'Ukuran file terlalu besar (maks. 5MB)';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    pickedImageDataUrl = await processImageFile(file);
+    const img = document.getElementById('banner-preview-img');
+    img.src = pickedImageDataUrl;
+    img.style.display = 'block';
+    document.getElementById('banner-drop-placeholder').style.display = 'none';
+  } catch (err) {
+    errorEl.textContent = 'Gagal memproses gambar';
+    errorEl.style.display = 'block';
+  }
+}
+
+const dropZone = document.getElementById('banner-drop-zone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--blue)'; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--blue-mid)'; });
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = 'var(--blue-mid)';
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    document.getElementById('banner-file').files = e.dataTransfer.files;
+    onBannerFilePicked();
+  }
+});
+
+async function submitBanner() {
+  const errorEl = document.getElementById('banner-modal-error');
+  errorEl.style.display = 'none';
+
+  const title = document.getElementById('banner-title').value.trim();
+  const description = document.getElementById('banner-description').value.trim();
+  const linkUrl = document.getElementById('banner-link').value.trim();
+  const order = Number(document.getElementById('banner-order').value) || 0;
+  const isActive = document.getElementById('banner-active').checked;
+
+  if (!title) {
+    errorEl.textContent = 'Judul wajib diisi';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (!editingBannerId && !pickedImageDataUrl) {
+    errorEl.textContent = 'Gambar wajib diunggah';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const body = { title, description, linkUrl, order, isActive };
+  if (pickedImageDataUrl) body.imageBase64 = pickedImageDataUrl;
+
+  const btn = document.getElementById('banner-submit-btn');
+  btn.disabled = true;
+  try {
+    if (editingBannerId) {
+      await apiFetch(`/banners/${editingBannerId}`, { method: 'PATCH', body: JSON.stringify(body) });
+    } else {
+      await apiFetch('/banners', { method: 'POST', body: JSON.stringify(body) });
+    }
+    closeBannerModal();
+    loadBanners();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteBanner(id, title) {
+  if (!(await confirmDialog(`Hapus banner "${title}"?`, { title: 'Hapus Banner', confirmLabel: 'Ya, Hapus' }))) return;
+  try {
+    await apiFetch(`/banners/${id}`, { method: 'DELETE' });
+    loadBanners();
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+loadBanners();
+</script>
+
+</body>
+</html>

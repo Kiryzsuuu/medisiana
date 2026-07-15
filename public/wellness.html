@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana — Kesehatan Diri</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+
+      <a href="chat.html"><button class="new-btn"><i class="ti ti-plus" aria-hidden="true"></i> Tanya Medina</button></a>
+
+      <div class="nav-label">Menu</div>
+      <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
+        <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
+        <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
+        <a href="wellness.html" class="nav-link active"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div>
+            <div class="side-user-name" id="side-name">—</div>
+            <div class="side-user-role" id="side-role">—</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Kesehatan Diri</div>
+          <div class="head-sub">Pantau tidur, stres, dan keseimbangan belajarmu — bukan pengganti tenaga medis profesional</div>
+        </div>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <!-- Check-in card -->
+        <div class="card mb-22">
+          <div class="card-head">
+            <div class="card-title">Check-in Hari Ini</div>
+            <span class="chip chip-blue" id="checkin-status">Belum diisi</span>
+          </div>
+
+          <div class="grid grid-2 mb-18" style="gap:20px">
+            <div class="field" style="margin-bottom:0">
+              <label class="field-label flex justify-between">Jam Tidur <span class="text-blue" id="val-sleep">7</span></label>
+              <input type="range" id="in-sleep" min="0" max="12" step="0.5" value="7" style="width:100%;accent-color:var(--blue)" oninput="document.getElementById('val-sleep').textContent=this.value" />
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label class="field-label flex justify-between">Jam Belajar <span class="text-blue" id="val-study">4</span></label>
+              <input type="range" id="in-study" min="0" max="16" step="0.5" value="4" style="width:100%;accent-color:var(--blue)" oninput="document.getElementById('val-study').textContent=this.value" />
+            </div>
+          </div>
+
+          <div class="field mb-18">
+            <label class="field-label flex justify-between">Tingkat Stres <span class="text-blue" id="val-stress">Santai</span></label>
+            <input type="range" id="in-stress" min="1" max="5" step="1" value="2" style="width:100%;accent-color:var(--amber)" oninput="updateStressLabel(this.value)" />
+          </div>
+
+          <div class="field mb-18">
+            <label class="field-label mb-10" style="display:block">Mood Hari Ini</label>
+            <div class="flex gap-8" id="mood-picker" style="flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm mood-btn" data-mood="great" onclick="pickMood('great')">😄 Semangat</button>
+              <button class="btn btn-ghost btn-sm mood-btn" data-mood="good" onclick="pickMood('good')">🙂 Baik</button>
+              <button class="btn btn-ghost btn-sm mood-btn" data-mood="okay" onclick="pickMood('okay')">😐 Biasa</button>
+              <button class="btn btn-ghost btn-sm mood-btn" data-mood="stressed" onclick="pickMood('stressed')">😟 Tertekan</button>
+              <button class="btn btn-ghost btn-sm mood-btn" data-mood="exhausted" onclick="pickMood('exhausted')">🥱 Lelah</button>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:16px">
+            <label class="field-label">Catatan (opsional)</label>
+            <input class="input" id="in-note" placeholder="cth: begadang belajar buat responsi..." />
+          </div>
+
+          <button class="btn btn-primary" id="checkin-btn" onclick="submitCheckin()"><i class="ti ti-check" aria-hidden="true"></i> Simpan Check-in</button>
+        </div>
+
+        <!-- Trend -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Tren 7 Hari Terakhir</div>
+          </div>
+          <div id="trend-chart">
+            <div class="fs-13 text-mut">Memuat...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel: Discuss with Medina -->
+    <aside class="rpanel" style="padding:0;display:flex;flex-direction:column">
+      <div style="padding:20px 22px;border-bottom:1px solid var(--border)">
+        <div class="flex items-center gap-10">
+          <div class="av av-md" style="background:linear-gradient(135deg,var(--green),#1BA37E);color:#fff"><i class="ti ti-heartbeat" aria-hidden="true"></i></div>
+          <div class="flex-1">
+            <div class="fw-800 fs-13">Diskusi dengan Medina</div>
+            <div class="fs-11 text-mut">Pendamping kesejahteraan, bukan diagnosis medis</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:16px" id="wellness-msgs">
+        <div class="card card-flat" style="background:#E8F8F2;border-color:#B8ECD9;padding:13px">
+          <div class="fs-12 text-soft" style="line-height:1.6">
+            <i class="ti ti-info-circle text-blue" aria-hidden="true"></i>
+            Ceritakan bagaimana kabarmu, atau tanya soal pola tidur/belajarmu. Medina akan lihat data check-in 7 harimu. Ini <strong>bukan pengganti konselor atau tenaga medis</strong> — kalau kamu merasa berat, hubungi layanan konseling kampus ya.
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:16px 22px;border-top:1px solid var(--border)">
+        <div class="composer-box" style="padding:6px 6px 6px 14px">
+          <input id="wellness-in" placeholder="cth: Kenapa aku capek terus ya akhir-akhir ini?" style="font-size:13px" onkeydown="if(event.key==='Enter')sendWellness()" />
+          <button class="composer-send" style="width:36px;height:36px;font-size:16px" onclick="sendWellness()" id="wellness-send-btn"><i class="ti ti-send" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+const currentUser = requireAuth('student');
+
+let selectedMood = null;
+let todayLog = null;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+const STRESS_LABELS = { 1: 'Santai', 2: 'Ringan', 3: 'Sedang', 4: 'Tinggi', 5: 'Sangat Tinggi' };
+function updateStressLabel(val) {
+  document.getElementById('val-stress').textContent = STRESS_LABELS[val] || val;
+}
+
+function pickMood(mood) {
+  selectedMood = mood;
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.className = btn.dataset.mood === mood ? 'btn btn-soft btn-sm mood-btn' : 'btn btn-ghost btn-sm mood-btn';
+  });
+}
+
+if (currentUser) {
+  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
+  document.getElementById('side-name').textContent = currentUser.fullName;
+  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+}
+
+async function loadTodayAndTrend() {
+  const errorEl = document.getElementById('page-error');
+  try {
+    const { logs } = await apiFetch('/wellness?days=7');
+    const today = new Date().toISOString().slice(0, 10);
+    todayLog = logs.find(l => l.date === today);
+
+    if (todayLog) {
+      document.getElementById('checkin-status').textContent = 'Sudah diisi hari ini';
+      document.getElementById('checkin-status').className = 'chip chip-green';
+      document.getElementById('in-sleep').value = todayLog.sleepHours ?? 7;
+      document.getElementById('val-sleep').textContent = todayLog.sleepHours ?? 7;
+      document.getElementById('in-study').value = todayLog.studyHours ?? 4;
+      document.getElementById('val-study').textContent = todayLog.studyHours ?? 4;
+      document.getElementById('in-stress').value = todayLog.stressLevel ?? 2;
+      updateStressLabel(todayLog.stressLevel ?? 2);
+      if (todayLog.mood) pickMood(todayLog.mood);
+      document.getElementById('in-note').value = todayLog.note || '';
+    }
+
+    renderTrend(logs);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+function renderTrend(logs) {
+  const container = document.getElementById('trend-chart');
+  if (!logs.length) {
+    container.innerHTML = '<div class="empty" style="padding:24px 10px"><div class="empty-ic"><i class="ti ti-chart-bar" aria-hidden="true"></i></div><div class="empty-title">Belum ada data</div><div class="empty-sub">Isi check-in hari ini untuk mulai memantau trenmu.</div></div>';
+    return;
+  }
+
+  const dayLabel = (d) => new Date(d).toLocaleDateString('id-ID', { weekday: 'short' });
+  const maxSleep = 10;
+
+  container.innerHTML = `
+    <div class="fs-12 fw-700 text-soft mb-10">Jam Tidur</div>
+    <div class="flex items-center gap-8 mb-22" style="height:90px;align-items:flex-end">
+      ${logs.map(l => `
+        <div class="flex-1" style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+          <div style="width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--blue),var(--blue-bright));height:${Math.min(100, ((l.sleepHours || 0) / maxSleep) * 100)}%;min-height:${l.sleepHours ? 4 : 0}px" title="${l.sleepHours ?? '—'} jam"></div>
+          <div class="fs-11 text-mut">${dayLabel(l.date)}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="fs-12 fw-700 text-soft mb-10">Tingkat Stres</div>
+    <div class="flex items-center gap-8" style="height:70px;align-items:flex-end">
+      ${logs.map(l => `
+        <div class="flex-1" style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+          <div style="width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--amber),#F7C948);height:${l.stressLevel ? (l.stressLevel / 5) * 100 : 0}%;min-height:${l.stressLevel ? 4 : 0}px" title="${l.stressLevel ?? '—'}/5"></div>
+          <div class="fs-11 text-mut">${dayLabel(l.date)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function submitCheckin() {
+  const btn = document.getElementById('checkin-btn');
+  btn.disabled = true;
+  try {
+    const { log } = await apiFetch('/wellness', {
+      method: 'POST',
+      body: JSON.stringify({
+        sleepHours: Number(document.getElementById('in-sleep').value),
+        studyHours: Number(document.getElementById('in-study').value),
+        stressLevel: Number(document.getElementById('in-stress').value),
+        mood: selectedMood || undefined,
+        note: document.getElementById('in-note').value.trim(),
+      }),
+    });
+    todayLog = log;
+    document.getElementById('checkin-status').textContent = 'Sudah diisi hari ini';
+    document.getElementById('checkin-status').className = 'chip chip-green';
+    toastSuccess('Check-in tersimpan!');
+    loadTodayAndTrend();
+  } catch (err) {
+    toastError(err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function wellnessBubble(role, text) {
+  const row = document.createElement('div');
+  row.className = 'flex gap-10';
+  const isAi = role === 'ai';
+  row.innerHTML = `
+    <div class="av av-sm" style="${isAi ? 'background:var(--green);color:#fff' : ''}">${isAi ? 'M' : initials(currentUser?.fullName)}</div>
+    <div class="flex-1">
+      <div class="fs-11 fw-700 ${isAi ? 'text-blue' : ''}">${isAi ? 'Medina' : 'Kamu'}</div>
+      <div class="fs-12 text-soft mt-6" style="line-height:1.55"></div>
+    </div>
+  `;
+  row.querySelector('.fs-12').textContent = text;
+  return row;
+}
+
+async function sendWellness() {
+  const input = document.getElementById('wellness-in');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const container = document.getElementById('wellness-msgs');
+  container.appendChild(wellnessBubble('user', text));
+  input.value = '';
+  container.scrollTop = container.scrollHeight;
+
+  const typing = document.createElement('div');
+  typing.className = 'flex gap-10';
+  typing.id = 'wellness-typing';
+  typing.innerHTML = `<div class="av av-sm" style="background:var(--green);color:#fff">M</div><div class="fs-12 text-mut" style="font-style:italic;padding-top:2px">Medina mengetik...</div>`;
+  container.appendChild(typing);
+  container.scrollTop = container.scrollHeight;
+
+  const btn = document.getElementById('wellness-send-btn');
+  btn.disabled = true;
+  try {
+    const data = await apiFetch('/wellness/ask-ai', { method: 'POST', body: JSON.stringify({ message: text }) });
+    document.getElementById('wellness-typing')?.remove();
+    container.appendChild(wellnessBubble('ai', data.message));
+    container.scrollTop = container.scrollHeight;
+  } catch (err) {
+    document.getElementById('wellness-typing')?.remove();
+    toastError(err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+updateStressLabel(2);
+loadTodayAndTrend();
+</script>
+
+</body>
+</html>

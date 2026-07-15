@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana — Latihan Soal</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+
+      <button class="new-btn" onclick="newSession()"><i class="ti ti-plus" aria-hidden="true"></i> Sesi Latihan Baru</button>
+
+      <div class="nav-label">Menu</div>
+      <nav class="nav-menu mb-22">
+        <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
+        <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="quiz.html" class="nav-link active"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
+        <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
+        <a href="wellness.html" class="nav-link"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
+      </nav>
+
+      <div class="nav-label">Riwayat Latihan</div>
+      <div style="flex:1;overflow-y:auto;margin:0 -6px">
+        <div style="padding:0 6px" id="thread-list">
+          <div class="fs-12" style="color:rgba(255,255,255,.6);padding:8px 10px">Memuat...</div>
+        </div>
+      </div>
+
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div>
+            <div class="side-user-name" id="side-name">—</div>
+            <div class="side-user-role" id="side-role">—</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main quiz -->
+    <div class="main">
+      <div class="head">
+        <div class="av av-md" style="background:linear-gradient(135deg,var(--amber),#F7C948);color:#fff"><i class="ti ti-pencil" aria-hidden="true"></i></div>
+        <div class="flex-1">
+          <div class="head-title" style="font-size:18px">Latihan Soal</div>
+          <div class="head-sub flex items-center gap-6"><span class="dot dot-live"></span> Medina buatkan soal dari buku, lalu evaluasi jawabanmu</div>
+        </div>
+        <a href="chat.html" class="btn btn-soft btn-sm" style="margin-right:8px"><i class="ti ti-robot" aria-hidden="true"></i> Ke Medina AI</a>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="chat-wrap">
+        <div class="chat-scroll" id="chat">
+          <div class="empty">
+            <div class="empty-ic" style="background:#FEF2DC;color:var(--amber)"><i class="ti ti-pencil" aria-hidden="true"></i></div>
+            <div class="empty-title">Mulai latihan soal 📝</div>
+            <div class="empty-sub">Sebutkan topik yang mau dilatih (cth: "Buatkan soal tentang siklus Krebs") — Medina akan membuat 1 soal dari buku aktif.</div>
+          </div>
+        </div>
+
+        <div class="composer">
+          <div class="composer-box">
+            <input id="msg" placeholder="cth: Buatkan soal tentang farmakologi antibiotik..." onkeydown="if(event.key==='Enter')send()" />
+            <button class="composer-send" onclick="send()" id="send-btn"><i class="ti ti-send" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel: Sources & context -->
+    <aside class="rpanel">
+      <div class="flex items-center mb-18">
+        <div class="av av-lg" style="background:linear-gradient(135deg,var(--amber),#F7C948);color:#fff"><i class="ti ti-pencil" style="font-size:26px" aria-hidden="true"></i></div>
+      </div>
+      <div class="fw-800" style="font-size:17px">Latihan Soal</div>
+      <div class="fs-12 text-mut mb-18">Kuis adaptif · RAG dari buku admin</div>
+
+      <div class="rp-block">
+        <div class="rp-label"><i class="ti ti-books" aria-hidden="true"></i> Sumber Soal Terakhir</div>
+        <div id="sources-list">
+          <div class="fs-12 text-mut">Belum ada sumber — minta soal dulu.</div>
+        </div>
+      </div>
+
+      <div class="rp-block">
+        <div class="rp-label"><i class="ti ti-info-circle" aria-hidden="true"></i> Cara Kerja</div>
+        <div class="card card-flat" style="background:#FEF2DC;border-color:#FCE3B8;padding:15px">
+          <div class="fs-12 text-soft" style="line-height:1.6">
+            Medina membuat <strong>1 soal per giliran</strong> dari buku yang aktif. Salah di percobaan pertama → dapat petunjuk. Salah lagi → dijelaskan lengkap dengan sumbernya.
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+const currentUser = requireAuth('student');
+
+let currentSessionId = null;
+let allSessions = [];
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+function timeAgo(dateStr) {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'baru saja';
+  if (mins < 60) return `${mins} menit lalu`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} jam lalu`;
+  return `${Math.floor(hours / 24)} hari lalu`;
+}
+
+if (currentUser) {
+  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
+  document.getElementById('side-name').textContent = currentUser.fullName;
+  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+}
+
+function renderThreadList() {
+  const container = document.getElementById('thread-list');
+  const quizSessions = allSessions.filter(s => s.mode === 'quiz');
+  if (!quizSessions.length) {
+    container.innerHTML = '<div class="fs-12" style="color:rgba(255,255,255,.6);padding:8px 10px">Belum ada riwayat latihan.</div>';
+    return;
+  }
+  container.innerHTML = quizSessions.map(s => `
+    <div class="thread ${s._id === currentSessionId ? 'active' : ''}" style="background:${s._id === currentSessionId ? 'rgba(255,255,255,.16)' : 'transparent'}" onclick="openSession('${s._id}')">
+      <div class="thread-title" style="color:${s._id === currentSessionId ? '#fff' : 'rgba(255,255,255,.9)'}"></div>
+      <div class="thread-sub" style="color:rgba(255,255,255,.65)">${timeAgo(s.updatedAt)}</div>
+    </div>
+  `).join('');
+  container.querySelectorAll('.thread-title').forEach((el, i) => { el.textContent = quizSessions[i].title; });
+}
+
+async function loadSessions() {
+  try {
+    const { sessions } = await apiFetch('/chat/sessions');
+    allSessions = sessions;
+    renderThreadList();
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
+function renderSources(sources) {
+  const container = document.getElementById('sources-list');
+  const valid = (sources || []).filter(s => s.bookTitle);
+  if (!valid.length) {
+    container.innerHTML = '<div class="fs-12 text-mut">Tidak ada sumber untuk soal terakhir.</div>';
+    return;
+  }
+  const icons = ['sb-blue', 'sb-green', 'sb-purple', 'sb-amber'];
+  container.innerHTML = valid.map((s, i) => `
+    <div class="rp-item">
+      <div class="rp-item-ic ${icons[i % icons.length]}"><i class="ti ti-book-2" aria-hidden="true"></i></div>
+      <div>
+        <div class="rp-item-title"></div>
+        <div class="rp-item-sub">${s.chapter ? `Bab ${escapeHtml(s.chapter)}` : ''}${s.chapter && s.page ? ' · ' : ''}${s.page ? `hal. ${s.page}` : ''}</div>
+      </div>
+    </div>
+  `).join('');
+  container.querySelectorAll('.rp-item-title').forEach((el, i) => { el.textContent = valid[i].bookTitle; });
+}
+
+function bubbleRow(role, text, time, sourcesHtml) {
+  const row = document.createElement('div');
+  row.className = role === 'user' ? 'bubble-row me' : 'bubble-row';
+  if (role === 'user') {
+    row.innerHTML = `<div class="av av-sm"></div><div><div class="bubble bubble-me"></div><div class="bubble-time">${time}</div></div>`;
+    row.querySelector('.av').textContent = initials(currentUser?.fullName);
+    row.querySelector('.bubble').textContent = text;
+  } else {
+    row.innerHTML = `<div class="av av-sm" style="background:var(--amber);color:#fff">M</div><div><div class="bubble bubble-ai"></div>${sourcesHtml || ''}<div class="bubble-time">${time}</div></div>`;
+    row.querySelector('.bubble').textContent = text;
+  }
+  return row;
+}
+
+function renderChatMessages(messages) {
+  const chat = document.getElementById('chat');
+  if (!messages.length) {
+    chat.innerHTML = `
+      <div class="empty">
+        <div class="empty-ic" style="background:#FEF2DC;color:var(--amber)"><i class="ti ti-pencil" aria-hidden="true"></i></div>
+        <div class="empty-title">Sesi latihan baru 📝</div>
+        <div class="empty-sub">Sebutkan topik yang mau dilatih — Medina akan membuat 1 soal dari buku aktif.</div>
+      </div>`;
+    return;
+  }
+  chat.innerHTML = '';
+  messages.forEach(m => {
+    const time = new Date(m.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    let sourcesHtml = '';
+    if (m.role === 'assistant' && (m.sources || []).some(s => s.bookTitle)) {
+      sourcesHtml = m.sources.filter(s => s.bookTitle).map(s => `<div class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</div>`).join('');
+    }
+    chat.appendChild(bubbleRow(m.role === 'user' ? 'user' : 'ai', m.content, time, sourcesHtml));
+  });
+  chat.scrollTop = chat.scrollHeight;
+  const last = messages.filter(m => m.role === 'assistant').pop();
+  if (last) renderSources(last.sources);
+}
+
+async function openSession(id) {
+  currentSessionId = id;
+  renderThreadList();
+  try {
+    const { messages } = await apiFetch(`/chat/sessions/${id}`);
+    renderChatMessages(messages);
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+function newSession() {
+  currentSessionId = null;
+  renderThreadList();
+  renderChatMessages([]);
+  document.getElementById('sources-list').innerHTML = '<div class="fs-12 text-mut">Belum ada sumber — minta soal dulu.</div>';
+}
+
+async function send() {
+  const input = document.getElementById('msg');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const chat = document.getElementById('chat');
+  if (chat.querySelector('.empty')) chat.innerHTML = '';
+
+  const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  chat.appendChild(bubbleRow('user', text, time));
+  input.value = '';
+  chat.scrollTop = chat.scrollHeight;
+
+  const typing = document.createElement('div');
+  typing.className = 'bubble-row';
+  typing.id = 'typing';
+  typing.innerHTML = `<div class="av av-sm" style="background:var(--amber);color:#fff">M</div><div class="bubble bubble-ai text-mut" style="font-style:italic">Medina menyiapkan soal...</div>`;
+  chat.appendChild(typing);
+  chat.scrollTop = chat.scrollHeight;
+
+  const sendBtn = document.getElementById('send-btn');
+  sendBtn.disabled = true;
+
+  try {
+    const data = await apiFetch('/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message: text, sessionId: currentSessionId, mode: 'quiz' }),
+    });
+    document.getElementById('typing')?.remove();
+
+    const isNewSession = !currentSessionId;
+    currentSessionId = data.sessionId;
+
+    const aiTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    const sourcesHtml = (data.sources || []).filter(s => s.bookTitle).map(s => `<div class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</div>`).join('');
+    chat.appendChild(bubbleRow('ai', data.message, aiTime, sourcesHtml));
+    chat.scrollTop = chat.scrollHeight;
+    renderSources(data.sources);
+
+    if (isNewSession) await loadSessions();
+    else renderThreadList();
+  } catch (err) {
+    document.getElementById('typing')?.remove();
+    const errRow = document.createElement('div');
+    errRow.className = 'bubble-row';
+    errRow.innerHTML = `<div class="av av-sm" style="background:var(--amber);color:#fff">M</div><div class="bubble bubble-ai" style="color:var(--red)"></div>`;
+    errRow.querySelector('.bubble').textContent = `Gagal mengirim pesan: ${err.message}`;
+    chat.appendChild(errRow);
+    chat.scrollTop = chat.scrollHeight;
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+loadSessions();
+</script>
+
+</body>
+</html>

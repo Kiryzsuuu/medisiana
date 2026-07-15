@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana — Study Room</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <button class="new-btn" onclick="show('m-room')"><i class="ti ti-plus" aria-hidden="true"></i> Buat Room</button>
+      <div class="nav-label">Menu</div>
+      <nav class="nav-menu">
+        <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
+        <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <a href="rooms.html" class="nav-link active"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
+        <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
+        <a href="wellness.html" class="nav-link"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div>
+            <div class="side-user-name" id="side-name">—</div>
+            <div class="side-user-role" id="side-role">—</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Study Room</div>
+          <div class="head-sub">Belajar bersama, tanya Medina bareng teman</div>
+        </div>
+        <button class="btn btn-primary" onclick="show('m-room')"><i class="ti ti-plus" aria-hidden="true"></i> Buat Room</button>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="flex items-center gap-8 mb-14" id="room-filters">
+          <span class="chip chip-blue" data-filter="all" onclick="setFilter('all')">Semua</span>
+          <span class="chip chip-gray" data-filter="public" onclick="setFilter('public')">Public</span>
+          <span class="chip chip-gray" data-filter="private" onclick="setFilter('private')">Private</span>
+          <span class="chip chip-gray" data-filter="mine" onclick="setFilter('mine')">Yang Saya Ikuti</span>
+        </div>
+
+        <div class="grid grid-3" id="rooms-grid">
+          <div class="fs-13 text-mut">Memuat room...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel: Live room chat -->
+    <aside class="rpanel" style="padding:0;display:flex;flex-direction:column" id="live-panel">
+      <div class="empty" style="padding:40px 20px" id="live-empty">
+        <div class="empty-ic"><i class="ti ti-users-group" aria-hidden="true"></i></div>
+        <div class="empty-title" style="font-size:14px">Pilih room</div>
+        <div class="empty-sub" style="font-size:12px">Klik salah satu room untuk mulai chat live.</div>
+      </div>
+
+      <div id="live-content" style="display:none;flex-direction:column;height:100%">
+        <div style="padding:20px 22px;border-bottom:1px solid var(--border)">
+          <div class="flex items-center gap-10">
+            <div class="room-emoji" style="width:42px;height:42px;font-size:20px;margin:0;background:var(--blue-soft)" id="live-emoji">💬</div>
+            <div class="flex-1">
+              <div class="fw-800 fs-13" id="live-name">—</div>
+              <div class="fs-11 text-mut flex items-center gap-6" id="live-meta"><span class="dot dot-live"></span> —</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:16px" id="live-msgs"></div>
+
+        <div style="padding:16px 22px;border-top:1px solid var(--border)">
+          <button class="btn btn-soft btn-block btn-sm mb-10" onclick="askMedina()" id="ask-medina-btn"><i class="ti ti-robot" aria-hidden="true"></i> Tanya Medina di Room</button>
+          <div class="composer-box" style="padding:6px 6px 6px 14px">
+            <input id="live-in" placeholder="Kirim pesan..." style="font-size:13px" onkeydown="if(event.key==='Enter')sendLive()" />
+            <button class="composer-send" style="width:36px;height:36px;font-size:16px" onclick="sendLive()"><i class="ti ti-send" aria-hidden="true"></i></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<!-- Modal: Create Room -->
+<div class="modal-bg" id="m-room">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Buat Study Room</div>
+      <button class="rpanel-close" onclick="hide('m-room')"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <p id="create-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+    <div class="field">
+      <label class="field-label">Nama Room</label>
+      <input class="input" id="room-name" placeholder="cth: Belajar Blok Kardio Bersama" />
+    </div>
+    <div class="field">
+      <label class="field-label">Topik / Blok</label>
+      <select class="select" id="room-topic">
+        <option>Kardiovaskular</option><option>Neurologi</option><option>Respirasi</option>
+        <option>Gastroenterologi</option><option>Farmakologi</option><option>Lainnya</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">Tipe Room</label>
+      <div class="flex gap-14">
+        <label class="flex items-center gap-8 fs-13" style="cursor:pointer"><input type="radio" name="rt" value="public" checked style="accent-color:var(--blue)" /> Public</label>
+        <label class="flex items-center gap-8 fs-13" style="cursor:pointer"><input type="radio" name="rt" value="private" style="accent-color:var(--blue)" /> Private</label>
+      </div>
+    </div>
+    <div class="flex gap-10 justify-between mt-18">
+      <button class="btn btn-ghost flex-1" onclick="hide('m-room')">Batal</button>
+      <button class="btn btn-primary flex-1" id="create-room-btn" onclick="submitCreateRoom()"><i class="ti ti-plus" aria-hidden="true"></i> Buat Room</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const currentUser = requireAuth('student');
+
+let allRooms = [];
+let activeRoomId = null;
+let currentFilter = 'all';
+let socket = null;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+function formatTime(dateStr) {
+  return new Date(dateStr).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+}
+
+const ROOM_EMOJI = ['❤️', '🧠', '🫁', '💊', '🔬', '📋', '🦴', '🩺'];
+const ROOM_BG = ['#FEE7ED', '#EEEBFE', '#EAF2FF', '#DFF7EF', '#FEF2DC'];
+function roomVisual(id) {
+  let hash = 0;
+  for (const c of id) hash = (hash + c.charCodeAt(0)) % ROOM_EMOJI.length;
+  return { emoji: ROOM_EMOJI[hash], bg: ROOM_BG[hash % ROOM_BG.length] };
+}
+
+if (currentUser) {
+  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
+  document.getElementById('side-name').textContent = currentUser.fullName;
+  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+}
+
+function show(id){ document.getElementById(id).classList.add('show'); }
+function hide(id){ document.getElementById(id).classList.remove('show'); }
+
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('#room-filters .chip').forEach(el => {
+    el.className = el.dataset.filter === filter ? 'chip chip-blue' : 'chip chip-gray';
+  });
+  renderRooms();
+}
+
+async function loadRooms() {
+  const errorEl = document.getElementById('page-error');
+  try {
+    const { rooms } = await apiFetch('/rooms');
+    allRooms = rooms;
+    renderRooms();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+function renderRooms() {
+  const grid = document.getElementById('rooms-grid');
+  let filtered = allRooms;
+  if (currentFilter === 'public') filtered = allRooms.filter(r => r.type === 'public');
+  if (currentFilter === 'private') filtered = allRooms.filter(r => r.type === 'private');
+  if (currentFilter === 'mine') filtered = allRooms.filter(r => (r.members || []).map(String).includes(String(currentUser.id)));
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="fs-13 text-mut">Tidak ada room. Buat room pertama!</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => {
+    const v = roomVisual(r._id);
+    const members = r.members || [];
+    const preview = members.slice(0, 3);
+    return `
+      <div class="room" onclick="openRoom('${r._id}')">
+        <div class="room-emoji" style="background:${v.bg}">${v.emoji}</div>
+        <div class="room-name"></div>
+        <div class="room-meta"><span class="dot dot-live"></span> ${members.length} anggota</div>
+        <div class="flex items-center justify-between mt-14">
+          <div class="room-stack">
+            ${preview.map((_, i) => `<div class="av av-sm">•</div>`).join('')}
+            ${members.length > 3 ? `<div class="av av-sm sb-amber">+${members.length - 3}</div>` : ''}
+          </div>
+          <span class="chip ${r.type === 'public' ? 'chip-blue' : 'chip-gray'}">${r.type === 'public' ? 'Public' : 'Private'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  grid.querySelectorAll('.room-name').forEach((el, i) => { el.textContent = filtered[i].name; });
+}
+
+function ensureSocket() {
+  if (socket) return socket;
+  socket = io({ auth: { token: getToken() } });
+  socket.on('room:message', (msg) => {
+    const msgRoomId = msg.roomId?.toString?.() || msg.roomId;
+    if (msgRoomId !== activeRoomId) return;
+    appendLiveMessage(msg);
+  });
+  return socket;
+}
+
+function appendLiveMessage(msg) {
+  const container = document.getElementById('live-msgs');
+  const isAi = msg.senderType === 'ai';
+  const name = isAi ? 'Medina AI' : (msg.senderName || 'Mahasiswa');
+  const el = document.createElement('div');
+  el.className = 'flex gap-10';
+  el.innerHTML = `
+    <div class="av av-sm" style="${isAi ? 'background:var(--blue);color:#fff' : ''}">${isAi ? 'M' : initials(name)}</div>
+    <div>
+      <div class="fs-11 fw-700 ${isAi ? 'text-blue' : ''}"></div>
+      <div class="fs-12 text-soft mt-6" style="line-height:1.55"></div>
+    </div>
+  `;
+  el.querySelector('.fs-11').textContent = `${name} · ${formatTime(msg.createdAt || Date.now())}`;
+  el.querySelector('.fs-12').textContent = msg.content;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function openRoom(id) {
+  const room = allRooms.find(r => r._id === id);
+  if (!room) return;
+
+  try {
+    const alreadyMember = (room.members || []).map(String).includes(String(currentUser.id));
+    if (!alreadyMember) {
+      let inviteCode = '';
+      if (room.type === 'private') {
+        inviteCode = prompt(`Room "${room.name}" bersifat private. Masukkan kode invite:`) || '';
+        if (!inviteCode) return;
+      }
+      await apiFetch(`/rooms/${id}/join`, { method: 'POST', body: JSON.stringify({ inviteCode }) });
+      await loadRooms();
+    }
+
+    const { messages } = await apiFetch(`/rooms/${id}/messages`);
+
+    if (activeRoomId) ensureSocket().emit('room:leave', { roomId: activeRoomId });
+    activeRoomId = id;
+    ensureSocket().emit('room:join', { roomId: id });
+
+    const v = roomVisual(id);
+    document.getElementById('live-emoji').textContent = v.emoji;
+    document.getElementById('live-emoji').style.background = v.bg;
+    document.getElementById('live-name').textContent = room.name;
+    document.getElementById('live-meta').innerHTML = `<span class="dot dot-live"></span> ${(room.members || []).length} anggota`;
+    document.getElementById('live-msgs').innerHTML = '';
+    messages.forEach(appendLiveMessage);
+
+    document.getElementById('live-empty').style.display = 'none';
+    document.getElementById('live-content').style.display = 'flex';
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+function sendLive() {
+  const input = document.getElementById('live-in');
+  const text = input.value.trim();
+  if (!text || !activeRoomId) return;
+  ensureSocket().emit('room:message', { roomId: activeRoomId, content: text });
+  input.value = '';
+}
+
+async function askMedina() {
+  const input = document.getElementById('live-in');
+  const question = input.value.trim();
+  if (!question || !activeRoomId) {
+    input.placeholder = '@Medina — ketik pertanyaan lalu klik Tanya Medina lagi...';
+    input.focus();
+    return;
+  }
+  input.value = '';
+  const btn = document.getElementById('ask-medina-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Medina berpikir...';
+  try {
+    await apiFetch(`/rooms/${activeRoomId}/ask-ai`, { method: 'POST', body: JSON.stringify({ question }) });
+    // Both the echoed question and Medina's reply arrive via the room:message socket event.
+  } catch (err) {
+    toastError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-robot" aria-hidden="true"></i> Tanya Medina di Room';
+  }
+}
+
+function closeCreateModal() {
+  hide('m-room');
+  document.getElementById('room-name').value = '';
+  document.getElementById('create-error').style.display = 'none';
+}
+
+async function submitCreateRoom() {
+  const errorEl = document.getElementById('create-error');
+  errorEl.style.display = 'none';
+
+  const name = document.getElementById('room-name').value.trim();
+  const topic = document.getElementById('room-topic').value;
+  const type = document.querySelector('input[name="rt"]:checked').value;
+
+  if (!name) {
+    errorEl.textContent = 'Nama room wajib diisi';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const { room } = await apiFetch('/rooms', { method: 'POST', body: JSON.stringify({ name, topic, type }) });
+    closeCreateModal();
+    await loadRooms();
+    openRoom(room._id);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+loadRooms();
+</script>
+
+</body>
+</html>

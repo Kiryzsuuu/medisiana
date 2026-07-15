@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana Admin — Kelola User</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.16);border-radius:11px;padding:8px 14px;margin-bottom:22px;font-size:11.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px">
+        <i class="ti ti-shield-lock" aria-hidden="true"></i> Panel Admin
+      </div>
+      <div class="nav-label">Kelola</div>
+      <nav class="nav-menu">
+        <a href="admin-books.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Kelola Buku</a>
+        <a href="admin-users.html" class="nav-link active"><i class="ti ti-users" aria-hidden="true"></i> Kelola User</a>
+        <a href="admin-banners.html" class="nav-link"><i class="ti ti-photo" aria-hidden="true"></i> Kelola Banner</a>
+        <a href="admin-ai.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Konfigurasi AI</a>
+        <a href="admin-analytics.html" class="nav-link"><i class="ti ti-chart-histogram" aria-hidden="true"></i> Analytics</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white">AD</div>
+          <div><div class="side-user-name">Administrator</div><div class="side-user-role">Admin</div></div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Kelola User</div>
+          <div class="head-sub" id="head-sub">— mahasiswa terdaftar</div>
+        </div>
+        <button class="btn btn-ghost" style="margin-right:8px" onclick="show('m-import')"><i class="ti ti-file-import" aria-hidden="true"></i> Import CSV</button>
+        <button class="btn btn-primary" onclick="openCreateModal()"><i class="ti ti-user-plus" aria-hidden="true"></i> Tambah User</button>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="grid grid-4 mb-22">
+          <div class="stat"><div class="stat-ic sb-blue"><i class="ti ti-users" aria-hidden="true"></i></div><div class="stat-num" id="stat-total">—</div><div class="stat-lbl">Total Mahasiswa</div></div>
+          <div class="stat"><div class="stat-ic sb-green"><i class="ti ti-user-check" aria-hidden="true"></i></div><div class="stat-num" id="stat-active">—</div><div class="stat-lbl">Akun Aktif</div></div>
+          <div class="stat"><div class="stat-ic sb-amber"><i class="ti ti-mail-exclamation" aria-hidden="true"></i></div><div class="stat-num" id="stat-unverified">—</div><div class="stat-lbl">Belum Verifikasi</div></div>
+          <div class="stat"><div class="stat-ic sb-red"><i class="ti ti-user-off" aria-hidden="true"></i></div><div class="stat-num" id="stat-suspended">—</div><div class="stat-lbl">Suspended</div></div>
+        </div>
+
+        <div class="card mb-18" style="padding:14px 18px">
+          <div class="flex gap-10 items-center" style="flex-wrap:wrap">
+            <div class="head-search flex-1" style="width:auto;min-width:180px"><i class="ti ti-search" aria-hidden="true"></i><input id="filter-search" placeholder="Cari nama atau email..." oninput="debouncedLoad()" /></div>
+            <select class="select" id="filter-angkatan" style="width:150px" onchange="loadUsers()">
+              <option value="">Semua Angkatan</option>
+              <option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option>
+            </select>
+            <select class="select" id="filter-status" style="width:150px" onchange="loadUsers()">
+              <option value="">Semua Status</option>
+              <option value="active">Aktif</option>
+              <option value="unverified">Belum Verifikasi</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tbl-card">
+          <table class="tbl">
+            <thead><tr><th>Mahasiswa</th><th>Angkatan</th><th>Role</th><th>Terdaftar</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody id="user-rows">
+              <tr><td colspan="6" class="fs-13 text-mut" style="padding:20px;text-align:center">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="fs-12 text-mut mt-18" id="list-count"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-bg" id="m-user">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="user-modal-title">Tambah User Baru</div><button class="rpanel-close" onclick="closeUserModal()"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+    <p id="user-modal-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+    <div class="field"><label class="field-label">Nama Lengkap</label><input class="input" id="user-fullname" placeholder="cth: Arif Rahman" /></div>
+    <div class="field"><label class="field-label">Email Kampus</label><input class="input" id="user-email" type="email" placeholder="nama@fk.univ.ac.id" /></div>
+    <div class="field"><label class="field-label">Angkatan</label><select class="select" id="user-angkatan"><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option></select></div>
+    <div class="field"><label class="field-label">Role</label><select class="select" id="user-role"><option value="student">Mahasiswa</option><option value="admin">Admin</option></select></div>
+    <div class="card card-flat" style="background:var(--blue-soft);border-color:var(--blue-mid);padding:13px;margin-bottom:18px" id="user-modal-hint">
+      <div class="flex gap-8 fs-12 text-soft"><i class="ti ti-mail text-blue" style="font-size:17px;flex-shrink:0" aria-hidden="true"></i> Email verifikasi & password sementara akan dikirim otomatis ke mahasiswa.</div>
+    </div>
+    <div class="flex gap-10">
+      <button class="btn btn-ghost flex-1" onclick="closeUserModal()">Batal</button>
+      <button class="btn btn-primary flex-1" id="user-modal-submit" onclick="submitUserModal()"><i class="ti ti-send" aria-hidden="true"></i> Tambah & Kirim</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-import">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Import User (CSV)</div><button class="rpanel-close" onclick="hide('m-import')"><i class="ti ti-x" aria-hidden="true"></i></button></div>
+    <p class="fs-12 text-mut mb-14">Format: satu baris per user, <code>email,fullName,angkatan</code>. Baris pertama boleh header.</p>
+    <div class="field"><textarea class="textarea" id="import-csv" rows="6" placeholder="budi@fk.univ.ac.id,Budi Prasetyo,2023&#10;siti@fk.univ.ac.id,Siti Rahayu,2022"></textarea></div>
+    <p id="import-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+    <div class="flex gap-10">
+      <button class="btn btn-ghost flex-1" onclick="hide('m-import')">Batal</button>
+      <button class="btn btn-primary flex-1" onclick="submitImport()"><i class="ti ti-file-import" aria-hidden="true"></i> Import</button>
+    </div>
+  </div>
+</div>
+
+<script>
+requireAuth('admin');
+
+let editingUserId = null;
+let debounceTimer = null;
+function debouncedLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadUsers, 300); }
+
+function show(id){ document.getElementById(id).classList.add('show'); }
+function hide(id){ document.getElementById(id).classList.remove('show'); }
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+function statusChip(user) {
+  if (!user.isActive) return '<span class="chip chip-red">Suspended</span>';
+  if (!user.isVerified) return '<span class="chip chip-amber">Belum Verifikasi</span>';
+  return '<span class="chip chip-green">Aktif</span>';
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+async function loadUsers() {
+  const search = document.getElementById('filter-search').value.trim();
+  const angkatan = document.getElementById('filter-angkatan').value;
+  const status = document.getElementById('filter-status').value;
+  const errorEl = document.getElementById('page-error');
+  const rows = document.getElementById('user-rows');
+  errorEl.style.display = 'none';
+
+  const params = new URLSearchParams({ role: 'student' });
+  if (search) params.set('search', search);
+  if (angkatan) params.set('angkatan', angkatan);
+
+  try {
+    const { users } = await apiFetch(`/admin/users?${params.toString()}`);
+    let filtered = users;
+    if (status === 'active') filtered = users.filter(u => u.isActive && u.isVerified);
+    if (status === 'unverified') filtered = users.filter(u => !u.isVerified && u.isActive);
+    if (status === 'suspended') filtered = users.filter(u => !u.isActive);
+
+    document.getElementById('stat-total').textContent = users.length;
+    document.getElementById('head-sub').textContent = `${users.length} mahasiswa terdaftar`;
+    document.getElementById('stat-active').textContent = users.filter(u => u.isActive && u.isVerified).length;
+    document.getElementById('stat-unverified').textContent = users.filter(u => !u.isVerified && u.isActive).length;
+    document.getElementById('stat-suspended').textContent = users.filter(u => !u.isActive).length;
+    document.getElementById('list-count').textContent = `Menampilkan ${filtered.length} dari ${users.length} user`;
+
+    if (!filtered.length) {
+      rows.innerHTML = `<tr><td colspan="6" class="fs-13 text-mut" style="padding:20px;text-align:center">Tidak ada user yang cocok</td></tr>`;
+      return;
+    }
+
+    rows.innerHTML = filtered.map(u => `
+      <tr>
+        <td>
+          <div class="flex items-center gap-14">
+            <div class="av av-md sb-blue"></div>
+            <div><div class="fw-700"></div><div class="fs-12 text-mut"></div></div>
+          </div>
+        </td>
+        <td>${u.angkatan || '—'}</td>
+        <td><span class="chip chip-blue">${u.role === 'admin' ? 'Admin' : 'Mahasiswa'}</span></td>
+        <td class="text-mut fs-13">${new Date(u.createdAt).toLocaleDateString('id-ID')}</td>
+        <td>${statusChip(u)}</td>
+        <td>
+          <div class="flex gap-6">
+            <button class="icon-btn" style="width:34px;height:34px;font-size:16px" title="Edit" onclick="openEditModal('${u.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
+            ${!u.isVerified ? `<button class="icon-btn" style="width:34px;height:34px;font-size:16px" title="Kirim ulang email verifikasi" onclick="resendVerification('${u.id}')"><i class="ti ti-mail" aria-hidden="true"></i></button>` : ''}
+            <button class="icon-btn" style="width:34px;height:34px;font-size:16px" title="${u.isActive ? 'Suspend' : 'Aktifkan kembali'}" onclick="toggleSuspend('${u.id}', ${u.isActive})"><i class="ti ${u.isActive ? 'ti-user-off' : 'ti-user-check'}" aria-hidden="true"></i></button>
+            <button class="icon-btn" style="width:34px;height:34px;font-size:16px;color:var(--red)" title="Hapus" onclick="deleteUser('${u.id}', '${escapeHtml(u.fullName)}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+    rows.querySelectorAll('.av-md').forEach((el, i) => { el.textContent = initials(filtered[i].fullName); });
+    rows.querySelectorAll('.fw-700').forEach((el, i) => { el.textContent = filtered[i].fullName; });
+    rows.querySelectorAll('.fs-12.text-mut').forEach((el, i) => { el.textContent = filtered[i].email; });
+
+    window.__usersCache = users;
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+    rows.innerHTML = '';
+  }
+}
+
+function openCreateModal() {
+  editingUserId = null;
+  document.getElementById('user-modal-title').textContent = 'Tambah User Baru';
+  document.getElementById('user-modal-submit').innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> Tambah & Kirim';
+  document.getElementById('user-modal-hint').style.display = 'block';
+  document.getElementById('user-fullname').value = '';
+  document.getElementById('user-email').value = '';
+  document.getElementById('user-email').disabled = false;
+  document.getElementById('user-angkatan').value = '2025';
+  document.getElementById('user-role').value = 'student';
+  document.getElementById('user-modal-error').style.display = 'none';
+  show('m-user');
+}
+
+function openEditModal(id) {
+  const user = (window.__usersCache || []).find(u => u.id === id);
+  if (!user) return;
+  editingUserId = id;
+  document.getElementById('user-modal-title').textContent = 'Edit User';
+  document.getElementById('user-modal-submit').innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Simpan Perubahan';
+  document.getElementById('user-modal-hint').style.display = 'none';
+  document.getElementById('user-fullname').value = user.fullName;
+  document.getElementById('user-email').value = user.email;
+  document.getElementById('user-email').disabled = true;
+  document.getElementById('user-angkatan').value = user.angkatan || '2025';
+  document.getElementById('user-role').value = user.role;
+  document.getElementById('user-modal-error').style.display = 'none';
+  show('m-user');
+}
+
+function closeUserModal() { hide('m-user'); }
+
+async function submitUserModal() {
+  const errorEl = document.getElementById('user-modal-error');
+  errorEl.style.display = 'none';
+
+  const fullName = document.getElementById('user-fullname').value.trim();
+  const email = document.getElementById('user-email').value.trim();
+  const angkatan = Number(document.getElementById('user-angkatan').value);
+  const role = document.getElementById('user-role').value;
+
+  if (!fullName || (!editingUserId && !email)) {
+    errorEl.textContent = 'Nama dan email wajib diisi';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    if (editingUserId) {
+      await apiFetch(`/admin/users/${editingUserId}`, { method: 'PUT', body: JSON.stringify({ fullName, angkatan, role }) });
+    } else {
+      await apiFetch('/admin/users', { method: 'POST', body: JSON.stringify({ fullName, email, angkatan, role }) });
+    }
+    closeUserModal();
+    loadUsers();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+async function toggleSuspend(id, currentlyActive) {
+  try {
+    await apiFetch(`/admin/users/${id}/suspend`, { method: 'PATCH', body: JSON.stringify({ isActive: !currentlyActive }) });
+    loadUsers();
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+async function deleteUser(id, name) {
+  if (!(await confirmDialog(`Hapus user "${name}"? Tindakan ini tidak bisa dibatalkan.`, { title: 'Hapus User', confirmLabel: 'Ya, Hapus' }))) return;
+  try {
+    await apiFetch(`/admin/users/${id}`, { method: 'DELETE' });
+    loadUsers();
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+async function resendVerification(id) {
+  try {
+    await apiFetch(`/admin/users/${id}/resend-verification`, { method: 'POST' });
+    toastSuccess('Email verifikasi dikirim ulang');
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+async function submitImport() {
+  const raw = document.getElementById('import-csv').value.trim();
+  const errorEl = document.getElementById('import-error');
+  errorEl.style.display = 'none';
+  if (!raw) return;
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const users = lines
+    .map(l => l.split(',').map(s => s.trim()))
+    .filter(([email]) => email && email.includes('@'))
+    .map(([email, fullName, angkatan]) => ({ email, fullName: fullName || email, angkatan: angkatan ? Number(angkatan) : undefined }));
+
+  if (!users.length) {
+    errorEl.textContent = 'Tidak ada baris valid untuk diimpor';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const { results } = await apiFetch('/admin/users/import', { method: 'POST', body: JSON.stringify({ users }) });
+    const created = results.filter(r => r.status === 'created').length;
+    const skipped = results.filter(r => r.status === 'skipped_exists').length;
+    hide('m-import');
+    document.getElementById('import-csv').value = '';
+    toastSuccess(`Import selesai: ${created} dibuat, ${skipped} dilewati (sudah ada).`);
+    loadUsers();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+loadUsers();
+</script>
+
+</body>
+</html>
