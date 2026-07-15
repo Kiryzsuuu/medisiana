@@ -39,7 +39,7 @@ async function searchRAG(query, angkatan, { topK = DEFAULT_TOP_K, category } = {
 function formatChunks(chunks) {
   if (!chunks.length) return '(Tidak ada konteks relevan)';
   return chunks
-    .map((c, i) => `[${i + 1}] 📖 ${c.bookTitle || 'Buku'}${c.chapter ? `, Bab ${c.chapter}` : ''}${c.pageNumber ? `, hal. ${c.pageNumber}` : ''}\n${c.content}`)
+    .map((c, i) => `[${i + 1}] Sumber: ${c.bookTitle || 'Buku'}${c.chapter ? `, Bab ${c.chapter}` : ''}${c.pageNumber ? `, hal. ${c.pageNumber}` : ''}\n${c.content}`)
     .join('\n\n');
 }
 

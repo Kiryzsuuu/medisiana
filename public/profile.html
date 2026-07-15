@@ -71,17 +71,6 @@
       <nav class="nav-menu">
         <a href="profile.html" class="nav-link active"><i class="ti ti-user-circle" aria-hidden="true"></i> Profil Saya</a>
       </nav>
-
-      <div class="sidebar-foot">
-        <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">-</div>
-          <div>
-            <div class="side-user-name" id="side-name">-</div>
-            <div class="side-user-role" id="side-role">-</div>
-          </div>
-          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
-        </div>
-      </div>
     </aside>
 
     <!-- Main -->
@@ -227,9 +216,6 @@ function fillForm(user) {
 
   document.getElementById('avatar-name').textContent = user.fullName;
   document.getElementById('avatar-role').textContent = user.angkatan ? `FK · Angkatan ${user.angkatan}` : 'Mahasiswa FK';
-  document.getElementById('side-avatar').textContent = initials(user.fullName);
-  document.getElementById('side-name').textContent   = user.fullName;
-  document.getElementById('side-role').textContent   = user.angkatan ? `FK · Angkatan ${user.angkatan}` : 'Mahasiswa FK';
 
   renderAvatar(user.avatarUrl, user.fullName);
 

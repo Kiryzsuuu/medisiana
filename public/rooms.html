@@ -32,16 +32,6 @@
         <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
         <a href="wellness.html" class="nav-link"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
       </nav>
-      <div class="sidebar-foot">
-        <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">-</div>
-          <div>
-            <div class="side-user-name" id="side-name">-</div>
-            <div class="side-user-role" id="side-role">-</div>
-          </div>
-          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
-        </div>
-      </div>
     </aside>
 
     <!-- Main -->
@@ -168,12 +158,6 @@ function roomVisual(id) {
   let hash = 0;
   for (const c of id) hash = (hash + c.charCodeAt(0)) % ROOM_EMOJI.length;
   return { emoji: ROOM_EMOJI[hash], bg: ROOM_BG[hash % ROOM_BG.length] };
-}
-
-if (currentUser) {
-  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
-  document.getElementById('side-name').textContent = currentUser.fullName;
-  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
 }
 
 function show(id){ document.getElementById(id).classList.add('show'); }

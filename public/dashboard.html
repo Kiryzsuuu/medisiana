@@ -38,16 +38,6 @@
       <nav class="nav-menu">
         <a href="profile.html" class="nav-link"><i class="ti ti-user-circle" aria-hidden="true"></i> Profil Saya</a>
       </nav>
-
-      <div class="sidebar-foot">
-        <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">-</div>
-          <div>
-            <div class="side-user-name" id="side-name">-</div>
-            <div class="side-user-role" id="side-role">-</div>
-          </div>
-        </div>
-      </div>
     </aside>
 
     <!-- Main -->
@@ -141,9 +131,6 @@ function timeAgo(dateStr) {
 }
 
 if (currentUser) {
-  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
-  document.getElementById('side-name').textContent = currentUser.fullName;
-  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
   document.getElementById('head-sub').textContent = currentUser.angkatan ? `Angkatan ${currentUser.angkatan}` : 'Selamat belajar hari ini';
   buildUserDropdown(currentUser);
 }

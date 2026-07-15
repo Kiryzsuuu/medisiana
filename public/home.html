@@ -100,16 +100,6 @@
       <nav class="nav-menu">
         <a href="profile.html" class="nav-link"><i class="ti ti-user-circle" aria-hidden="true"></i> Profil Saya</a>
       </nav>
-
-      <div class="sidebar-foot">
-        <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">-</div>
-          <div>
-            <div class="side-user-name" id="side-name">-</div>
-            <div class="side-user-role" id="side-role">-</div>
-          </div>
-        </div>
-      </div>
     </aside>
 
     <!-- Main -->
@@ -126,7 +116,7 @@
       <div class="body">
 
         <!-- Greeting -->
-        <div class="home-greeting" id="home-greeting">Halo 👋</div>
+        <div class="home-greeting" id="home-greeting">Halo</div>
         <div class="home-title" id="home-title">Siap belajar hari ini?</div>
 
         <!-- Hero Carousel -->
@@ -212,11 +202,8 @@ function initials(name) {
 
 if (currentUser) {
   const firstName = currentUser.fullName?.split(' ')[0] || '';
-  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
-  document.getElementById('side-name').textContent = currentUser.fullName;
-  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
   document.getElementById('head-sub').textContent = currentUser.angkatan ? `Angkatan ${currentUser.angkatan}` : 'Selamat datang di Medisiana';
-  document.getElementById('home-greeting').textContent = `Halo, ${firstName}! 👋`;
+  document.getElementById('home-greeting').textContent = `Halo, ${firstName}!`;
   document.getElementById('home-title').textContent = 'Siap belajar hari ini?';
   buildUserDropdown(currentUser);
 }
@@ -252,7 +239,7 @@ function renderHeroDefault() {
     </div>
   `;
   const firstName = currentUser?.fullName?.split(' ')[0] || '';
-  existing.querySelector('.hero-default-title').textContent = `Halo, ${firstName}! Siap belajar hari ini? 👋`;
+  existing.querySelector('.hero-default-title').textContent = `Halo, ${firstName}! Siap belajar hari ini?`;
 }
 
 function renderHero(banners) {
