@@ -5,6 +5,9 @@ const ctrl = require('../controllers/bannerController');
 
 const router = express.Router();
 
+// Public, unauthenticated - must be registered before router.use(auth) below.
+router.get('/public/login', ctrl.getPublicLoginBanner);
+
 router.use(auth);
 
 router.get('/', ctrl.listBanners);

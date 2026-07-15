@@ -22,9 +22,23 @@ async function listBanners(req, res, next) {
   }
 }
 
+// Public, unauthenticated - used by the pre-login page to fetch the
+// admin-configured login photo (if any). Only ever returns 'login'
+// placement banners, and only the fields the login page actually needs.
+async function getPublicLoginBanner(req, res, next) {
+  try {
+    const banner = await Banner.findOne({ placement: 'login', isActive: true })
+      .sort({ order: 1, createdAt: -1 })
+      .select('imageBase64 title');
+    res.json({ banner: banner || null });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function createBanner(req, res, next) {
   try {
-    const { title, description, imageBase64, linkUrl, order } = req.body;
+    const { title, description, imageBase64, linkUrl, order, placement } = req.body;
     if (!title) return res.status(400).json({ error: 'title wajib diisi' });
 
     const imageError = validateImage(imageBase64);
@@ -33,6 +47,7 @@ async function createBanner(req, res, next) {
     const banner = await Banner.create({
       title, description, imageBase64, linkUrl,
       order: order ?? 0,
+      placement: placement === 'login' ? 'login' : 'dashboard',
       createdBy: req.user._id,
     });
 
@@ -44,13 +59,14 @@ async function createBanner(req, res, next) {
 
 async function updateBanner(req, res, next) {
   try {
-    const { title, description, imageBase64, linkUrl, order, isActive } = req.body;
+    const { title, description, imageBase64, linkUrl, order, isActive, placement } = req.body;
     const update = {};
     if (title !== undefined) update.title = title;
     if (description !== undefined) update.description = description;
     if (linkUrl !== undefined) update.linkUrl = linkUrl;
     if (order !== undefined) update.order = order;
     if (isActive !== undefined) update.isActive = isActive;
+    if (placement !== undefined) update.placement = placement === 'login' ? 'login' : 'dashboard';
 
     if (imageBase64 !== undefined) {
       const imageError = validateImage(imageBase64);
@@ -76,4 +92,4 @@ async function deleteBanner(req, res, next) {
   }
 }
 
-module.exports = { listBanners, createBanner, updateBanner, deleteBanner };
+module.exports = { listBanners, getPublicLoginBanner, createBanner, updateBanner, deleteBanner };

@@ -14,6 +14,7 @@
 
   <!-- Brand side -->
   <div class="login-brand">
+    <div class="login-brand-orange-blob" aria-hidden="true"></div>
     <div class="login-particles" aria-hidden="true">
       <i class="ti ti-stethoscope login-particle"></i>
       <i class="ti ti-vaccine login-particle"></i>
@@ -21,6 +22,10 @@
       <i class="ti ti-heartbeat login-particle"></i>
       <i class="ti ti-dna-2 login-particle"></i>
       <i class="ti ti-microscope login-particle"></i>
+    </div>
+
+    <div class="lb-photo" id="lb-photo" style="display:none">
+      <img id="lb-photo-img" alt="" />
     </div>
 
     <div class="lb-top">
@@ -102,6 +107,20 @@ if (getToken()) {
   const user = getUser();
   window.location.href = user?.role === 'admin' ? 'admin-books.html' : 'home.html';
 }
+
+async function loadLoginPhoto() {
+  try {
+    const { banner } = await apiFetch('/banners/public/login');
+    if (!banner || !banner.imageBase64) return;
+    const img = document.getElementById('lb-photo-img');
+    img.src = banner.imageBase64;
+    img.alt = banner.title || '';
+    document.getElementById('lb-photo').style.display = 'block';
+  } catch (err) {
+    console.error('Gagal memuat foto login:', err.message);
+  }
+}
+loadLoginPhoto();
 
 function togglePassword() {
   const input = document.getElementById('password');

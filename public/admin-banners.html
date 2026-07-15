@@ -51,7 +51,7 @@
       <div class="head">
         <div class="flex-1">
           <div class="head-title">Kelola Hero Banner</div>
-          <div class="head-sub">Carousel tips, iklan, & pengumuman di halaman Dashboard mahasiswa</div>
+          <div class="head-sub">Carousel Dashboard mahasiswa, atau foto dekoratif di halaman Login</div>
         </div>
         <button class="btn btn-primary" onclick="openCreateModal()"><i class="ti ti-plus" aria-hidden="true"></i> Tambah Banner</button>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
@@ -99,6 +99,13 @@
     <div class="field"><label class="field-label">Judul</label><input class="input" id="banner-title" placeholder="cth: Tips Belajar Efektif Sebelum UAS" /></div>
     <div class="field"><label class="field-label">Deskripsi (opsional)</label><textarea class="textarea" id="banner-description" rows="2" placeholder="Teks singkat yang muncul di bawah judul..."></textarea></div>
     <div class="field"><label class="field-label">Link Tujuan (opsional)</label><input class="input" id="banner-link" placeholder="cth: https://... atau chat.html" /></div>
+    <div class="field">
+      <label class="field-label">Tampilkan di</label>
+      <select class="select" id="banner-placement">
+        <option value="dashboard">Dashboard Hero (mahasiswa, setelah login)</option>
+        <option value="login">Halaman Login (foto dekoratif, sebelum login)</option>
+      </select>
+    </div>
     <div class="field">
       <label class="field-label">Urutan Tampil</label>
       <input class="input" id="banner-order" type="number" value="0" style="width:120px" />
@@ -161,6 +168,7 @@ function renderBanners() {
         <img src="${b.imageBase64}" style="width:100%;height:100%;object-fit:cover;display:block" />
         <span class="chip ${b.isActive ? 'chip-green' : 'chip-gray'}" style="position:absolute;top:10px;right:10px">${b.isActive ? 'Aktif' : 'Nonaktif'}</span>
         <span class="chip chip-blue" style="position:absolute;top:10px;left:10px">#${b.order}</span>
+        <span class="chip chip-amber" style="position:absolute;bottom:10px;left:10px">${b.placement === 'login' ? 'Halaman Login' : 'Dashboard Hero'}</span>
       </div>
       <div style="padding:16px">
         <div class="room-name" style="margin-bottom:4px"></div>
@@ -180,6 +188,7 @@ function resetBannerForm() {
   document.getElementById('banner-title').value = '';
   document.getElementById('banner-description').value = '';
   document.getElementById('banner-link').value = '';
+  document.getElementById('banner-placement').value = 'dashboard';
   document.getElementById('banner-order').value = '0';
   document.getElementById('banner-active').checked = true;
   document.getElementById('banner-file').value = '';
@@ -207,6 +216,7 @@ function openEditModal(id) {
   document.getElementById('banner-title').value = banner.title;
   document.getElementById('banner-description').value = banner.description || '';
   document.getElementById('banner-link').value = banner.linkUrl || '';
+  document.getElementById('banner-placement').value = banner.placement === 'login' ? 'login' : 'dashboard';
   document.getElementById('banner-order').value = banner.order || 0;
   document.getElementById('banner-active').checked = banner.isActive;
   document.getElementById('banner-preview-img').src = banner.imageBase64;
@@ -302,6 +312,7 @@ async function submitBanner() {
   const title = document.getElementById('banner-title').value.trim();
   const description = document.getElementById('banner-description').value.trim();
   const linkUrl = document.getElementById('banner-link').value.trim();
+  const placement = document.getElementById('banner-placement').value;
   const order = Number(document.getElementById('banner-order').value) || 0;
   const isActive = document.getElementById('banner-active').checked;
 
@@ -316,7 +327,7 @@ async function submitBanner() {
     return;
   }
 
-  const body = { title, description, linkUrl, order, isActive };
+  const body = { title, description, linkUrl, placement, order, isActive };
   if (pickedImageDataUrl) body.imageBase64 = pickedImageDataUrl;
 
   const btn = document.getElementById('banner-submit-btn');

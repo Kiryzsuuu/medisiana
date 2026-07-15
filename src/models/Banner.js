@@ -5,6 +5,7 @@ const bannerSchema = new mongoose.Schema({
   description: { type: String },
   imageBase64: { type: String, required: true }, // data URI, e.g. "data:image/jpeg;base64,..."
   linkUrl:     { type: String },
+  placement:   { type: String, enum: ['dashboard', 'login'], default: 'dashboard' },
   order:       { type: Number, default: 0 },
   isActive:    { type: Boolean, default: true },
   createdBy:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
