@@ -57,14 +57,6 @@
 
       <div class="body">
 
-        <!-- Hero Carousel -->
-        <div class="hero-carousel mb-22" id="hero-carousel">
-          <div class="hero-track" id="hero-track" style="display:none"></div>
-          <button class="hero-arrow hero-arrow-prev" id="hero-prev" onclick="heroGo(heroIndex - 1)" aria-label="Sebelumnya" style="display:none"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
-          <button class="hero-arrow hero-arrow-next" id="hero-next" onclick="heroGo(heroIndex + 1)" aria-label="Berikutnya" style="display:none"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
-          <div class="hero-dots" id="hero-dots"></div>
-        </div>
-
         <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
 
         <!-- Stats -->
@@ -147,110 +139,6 @@ if (currentUser) {
   document.getElementById('side-name').textContent = currentUser.fullName;
   document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
   document.getElementById('head-sub').textContent = currentUser.angkatan ? `Angkatan ${currentUser.angkatan}` : 'Selamat belajar hari ini';
-}
-
-let heroSlides = [];
-let heroIndex = 0;
-let heroTimer = null;
-let heroIsDefault = true;
-
-function renderHeroDefault() {
-  heroIsDefault = true;
-  heroSlides = [];
-  clearInterval(heroTimer);
-  document.getElementById('hero-track').style.display = 'none';
-  document.getElementById('hero-prev').style.display = 'none';
-  document.getElementById('hero-next').style.display = 'none';
-  document.getElementById('hero-dots').innerHTML = '';
-
-  const wrap = document.getElementById('hero-carousel');
-  const firstName = currentUser?.fullName?.split(' ')[0] || '';
-  let existing = wrap.querySelector('.hero-default');
-  if (!existing) {
-    existing = document.createElement('div');
-    existing.className = 'hero-default';
-    wrap.appendChild(existing);
-  }
-  existing.innerHTML = `
-    <div class="hero-default-body">
-      <div class="hero-default-icon"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
-      <div class="hero-default-title"></div>
-      <div class="hero-default-desc">Tanya apa saja tentang materi kedokteranmu — Medina siap membantu kamu berpikir sebelum memberi jawaban lengkap dari buku terverifikasi.</div>
-      <a href="chat.html"><button class="btn btn-white"><i class="ti ti-robot" aria-hidden="true"></i> Mulai Belajar</button></a>
-    </div>
-  `;
-  existing.querySelector('.hero-default-title').textContent = `Halo, ${firstName}! Siap belajar hari ini? 👋`;
-}
-
-function renderHero(banners) {
-  const wrap = document.getElementById('hero-carousel');
-  const defaultEl = wrap.querySelector('.hero-default');
-
-  if (!banners.length) {
-    renderHeroDefault();
-    return;
-  }
-
-  heroIsDefault = false;
-  if (defaultEl) defaultEl.remove();
-  heroSlides = banners;
-
-  const track = document.getElementById('hero-track');
-  track.style.display = 'flex';
-  document.getElementById('hero-prev').style.display = banners.length > 1 ? 'flex' : 'none';
-  document.getElementById('hero-next').style.display = banners.length > 1 ? 'flex' : 'none';
-
-  track.innerHTML = banners.map(b => `
-    <a class="hero-slide" href="${b.linkUrl ? escapeHtml(b.linkUrl) : '#'}" ${b.linkUrl ? '' : 'onclick="return false;" style="cursor:default"'}>
-      <img src="${b.imageBase64}" alt="" />
-      <div class="hero-overlay">
-        <div class="hero-slide-title"></div>
-        <div class="hero-slide-desc"></div>
-      </div>
-    </a>
-  `).join('');
-  track.querySelectorAll('.hero-slide-title').forEach((el, i) => { el.textContent = banners[i].title; });
-  track.querySelectorAll('.hero-slide-desc').forEach((el, i) => { el.textContent = banners[i].description || ''; });
-
-  const dots = document.getElementById('hero-dots');
-  dots.innerHTML = banners.length > 1 ? banners.map((_, i) => `<button class="hero-dot" onclick="heroGo(${i})" aria-label="Slide ${i + 1}"></button>`).join('') : '';
-
-  heroIndex = 0;
-  updateHeroUI();
-  startHeroAutoplay();
-}
-
-function updateHeroUI() {
-  const track = document.getElementById('hero-track');
-  track.style.transform = `translateX(-${heroIndex * 100}%)`;
-  document.querySelectorAll('#hero-dots .hero-dot').forEach((d, i) => d.classList.toggle('active', i === heroIndex));
-}
-
-function heroGo(i) {
-  if (!heroSlides.length) return;
-  heroIndex = (i + heroSlides.length) % heroSlides.length;
-  updateHeroUI();
-  startHeroAutoplay();
-}
-
-function startHeroAutoplay() {
-  clearInterval(heroTimer);
-  if (heroIsDefault || heroSlides.length <= 1) return;
-  heroTimer = setInterval(() => heroGo(heroIndex + 1), 5500);
-}
-
-const heroCarouselEl = document.getElementById('hero-carousel');
-heroCarouselEl.addEventListener('mouseenter', () => clearInterval(heroTimer));
-heroCarouselEl.addEventListener('mouseleave', startHeroAutoplay);
-
-async function loadHero() {
-  renderHeroDefault();
-  try {
-    const { banners } = await apiFetch('/banners');
-    renderHero(banners.filter(b => b.isActive));
-  } catch (err) {
-    console.error('Gagal memuat banner:', err.message);
-  }
 }
 
 const TIMELINE_ICON = {
@@ -367,7 +255,6 @@ async function loadDashboard() {
 }
 
 loadDashboard();
-loadHero();
 </script>
 
 </body>
