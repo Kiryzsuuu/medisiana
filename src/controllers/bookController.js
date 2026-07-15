@@ -1,6 +1,7 @@
 const Book = require('../models/Book');
 const DocumentChunk = require('../models/DocumentChunk');
 const { parsePdf } = require('../services/pdf/parser');
+const { ocrLowTextPages } = require('../services/pdf/ocr');
 const { pagesToMarkdown } = require('../services/pdf/toMarkdown');
 const { chunkText } = require('../services/pdf/chunker');
 const { uploadPdfBuffer, downloadPdfBuffer, deletePdf, openDownloadStream } = require('../config/gridfs');
@@ -18,7 +19,15 @@ async function indexBook(book) {
     await book.save();
 
     const buffer = await downloadPdfBuffer(book.gridFsId);
-    const pages = await parsePdf(buffer);
+    const rawPages = await parsePdf(buffer);
+
+    // Pages with little/no extractable text (scanned pages, image-only
+    // figures) get a second pass through OCR so their content isn't silently
+    // dropped from the knowledge base. Capped internally so a fully-scanned
+    // book doesn't stall indexing for hours.
+    const { pages, ocrPageCount } = await ocrLowTextPages(buffer, rawPages);
+    if (ocrPageCount > 0) console.log(`[bookController] OCR memulihkan teks dari ${ocrPageCount} halaman untuk "${book.title}"`);
+
     const { text, pageRanges } = pagesToMarkdown(pages);
     const rawChunks = chunkText(text, pageRanges);
 
