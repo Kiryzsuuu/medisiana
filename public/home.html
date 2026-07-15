@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana — Beranda</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+  <style>
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform .16s, box-shadow .16s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card);
+    }
+    .feature-ic {
+      width: 52px; height: 52px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .feature-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .feature-desc { font-size: 12.5px; color: var(--ink-mut); line-height: 1.6; }
+    .feature-arrow {
+      margin-top: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+    }
+    .home-greeting { font-size: 13px; color: var(--ink-mut); font-weight: 500; margin-bottom: 6px; }
+    .home-title { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -.4px; margin-bottom: 20px; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      color: var(--ink-mut);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label i { font-size: 15px; color: var(--blue); }
+    @media (max-width: 1024px) {
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .feature-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+
+      <a href="chat.html"><button class="new-btn"><i class="ti ti-plus" aria-hidden="true"></i> Tanya Medina</button></a>
+
+      <div class="nav-label">Menu</div>
+      <nav class="nav-menu">
+        <a href="home.html" class="nav-link active"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
+        <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
+        <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
+        <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
+        <a href="wellness.html" class="nav-link"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div>
+            <div class="side-user-name" id="side-name">—</div>
+            <div class="side-user-role" id="side-role">—</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Beranda</div>
+          <div class="head-sub" id="head-sub">Selamat datang di Medisiana</div>
+        </div>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+
+        <!-- Greeting -->
+        <div class="home-greeting" id="home-greeting">Halo 👋</div>
+        <div class="home-title" id="home-title">Siap belajar hari ini?</div>
+
+        <!-- Hero Carousel -->
+        <div class="hero-carousel mb-22" id="hero-carousel">
+          <div class="hero-track" id="hero-track" style="display:none"></div>
+          <button class="hero-arrow hero-arrow-prev" id="hero-prev" onclick="heroGo(heroIndex - 1)" aria-label="Sebelumnya" style="display:none"><i class="ti ti-chevron-left" aria-hidden="true"></i></button>
+          <button class="hero-arrow hero-arrow-next" id="hero-next" onclick="heroGo(heroIndex + 1)" aria-label="Berikutnya" style="display:none"><i class="ti ti-chevron-right" aria-hidden="true"></i></button>
+          <div class="hero-dots" id="hero-dots"></div>
+        </div>
+
+        <!-- Fitur Unggulan -->
+        <div class="section-label"><i class="ti ti-bolt"></i> Fitur Unggulan</div>
+        <div class="feature-grid">
+
+          <a href="chat.html" class="feature-card">
+            <div class="feature-ic sb-blue"><i class="ti ti-robot" aria-hidden="true"></i></div>
+            <div>
+              <div class="feature-title">Medina AI</div>
+              <div class="feature-desc">Tutor AI Socratis yang mendorongmu berpikir sebelum memberi jawaban dari buku terverifikasi.</div>
+            </div>
+            <div class="feature-arrow">Mulai chat <i class="ti ti-arrow-right"></i></div>
+          </a>
+
+          <a href="quiz.html" class="feature-card">
+            <div class="feature-ic sb-amber"><i class="ti ti-pencil" aria-hidden="true"></i></div>
+            <div>
+              <div class="feature-title">Latihan Soal</div>
+              <div class="feature-desc">Uji pemahamanmu dengan soal-soal klinis berbasis materi yang sudah kamu pelajari.</div>
+            </div>
+            <div class="feature-arrow">Mulai latihan <i class="ti ti-arrow-right"></i></div>
+          </a>
+
+          <a href="rooms.html" class="feature-card">
+            <div class="feature-ic sb-green"><i class="ti ti-users-group" aria-hidden="true"></i></div>
+            <div>
+              <div class="feature-title">Study Room</div>
+              <div class="feature-desc">Belajar bareng teman satu angkatan secara real-time dalam ruang diskusi kolaboratif.</div>
+            </div>
+            <div class="feature-arrow">Lihat room <i class="ti ti-arrow-right"></i></div>
+          </a>
+
+          <a href="cases.html" class="feature-card">
+            <div class="feature-ic sb-purple"><i class="ti ti-stethoscope" aria-hidden="true"></i></div>
+            <div>
+              <div class="feature-title">Diskusi Kasus</div>
+              <div class="feature-desc">Posting dan diskusikan kasus klinis menarik bersama sesama mahasiswa FK.</div>
+            </div>
+            <div class="feature-arrow">Lihat kasus <i class="ti ti-arrow-right"></i></div>
+          </a>
+
+          <a href="wellness.html" class="feature-card">
+            <div class="feature-ic sb-red"><i class="ti ti-heartbeat" aria-hidden="true"></i></div>
+            <div>
+              <div class="feature-title">Kesehatan Diri</div>
+              <div class="feature-desc">Pantau kondisi fisik dan mentalmu agar tetap prima selama masa studi kedokteran.</div>
+            </div>
+            <div class="feature-arrow">Cek kondisi <i class="ti ti-arrow-right"></i></div>
+          </a>
+
+          <a href="dashboard.html" class="feature-card">
+            <div class="feature-ic" style="background:#EEF3FA;color:var(--ink-soft)"><i class="ti ti-layout-grid" aria-hidden="true"></i></div>
+            <div>
+              <div class="feature-title">Dashboard</div>
+              <div class="feature-desc">Lihat statistik belajarmu, aktivitas terakhir, dan buku referensi yang tersedia.</div>
+            </div>
+            <div class="feature-arrow">Lihat statistik <i class="ti ti-arrow-right"></i></div>
+          </a>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const currentUser = requireAuth('student');
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+if (currentUser) {
+  const firstName = currentUser.fullName?.split(' ')[0] || '';
+  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
+  document.getElementById('side-name').textContent = currentUser.fullName;
+  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+  document.getElementById('head-sub').textContent = currentUser.angkatan ? `Angkatan ${currentUser.angkatan}` : 'Selamat datang di Medisiana';
+  document.getElementById('home-greeting').textContent = `Halo, ${firstName}! 👋`;
+  document.getElementById('home-title').textContent = 'Siap belajar hari ini?';
+}
+
+// ── Hero Carousel ──
+let heroSlides = [];
+let heroIndex = 0;
+let heroTimer = null;
+let heroIsDefault = true;
+
+function renderHeroDefault() {
+  heroIsDefault = true;
+  heroSlides = [];
+  clearInterval(heroTimer);
+  document.getElementById('hero-track').style.display = 'none';
+  document.getElementById('hero-prev').style.display = 'none';
+  document.getElementById('hero-next').style.display = 'none';
+  document.getElementById('hero-dots').innerHTML = '';
+
+  const wrap = document.getElementById('hero-carousel');
+  let existing = wrap.querySelector('.hero-default');
+  if (!existing) {
+    existing = document.createElement('div');
+    existing.className = 'hero-default';
+    wrap.appendChild(existing);
+  }
+  existing.innerHTML = `
+    <div class="hero-default-body">
+      <div class="hero-default-icon"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
+      <div class="hero-default-title"></div>
+      <div class="hero-default-desc">Tanya apa saja tentang materi kedokteranmu — Medina siap membantu kamu berpikir sebelum memberi jawaban lengkap dari buku terverifikasi.</div>
+      <a href="chat.html"><button class="btn btn-white"><i class="ti ti-robot" aria-hidden="true"></i> Mulai Belajar</button></a>
+    </div>
+  `;
+  const firstName = currentUser?.fullName?.split(' ')[0] || '';
+  existing.querySelector('.hero-default-title').textContent = `Halo, ${firstName}! Siap belajar hari ini? 👋`;
+}
+
+function renderHero(banners) {
+  const wrap = document.getElementById('hero-carousel');
+  const defaultEl = wrap.querySelector('.hero-default');
+
+  if (!banners.length) { renderHeroDefault(); return; }
+
+  heroIsDefault = false;
+  if (defaultEl) defaultEl.remove();
+  heroSlides = banners;
+
+  const track = document.getElementById('hero-track');
+  track.style.display = 'flex';
+  document.getElementById('hero-prev').style.display = banners.length > 1 ? 'flex' : 'none';
+  document.getElementById('hero-next').style.display = banners.length > 1 ? 'flex' : 'none';
+
+  track.innerHTML = banners.map(b => `
+    <a class="hero-slide" href="${b.linkUrl ? escapeHtml(b.linkUrl) : '#'}" ${b.linkUrl ? '' : 'onclick="return false;" style="cursor:default"'}>
+      <img src="${b.imageBase64}" alt="" />
+      <div class="hero-overlay">
+        <div class="hero-slide-title"></div>
+        <div class="hero-slide-desc"></div>
+      </div>
+    </a>
+  `).join('');
+  track.querySelectorAll('.hero-slide-title').forEach((el, i) => { el.textContent = banners[i].title; });
+  track.querySelectorAll('.hero-slide-desc').forEach((el, i) => { el.textContent = banners[i].description || ''; });
+
+  const dots = document.getElementById('hero-dots');
+  dots.innerHTML = banners.length > 1 ? banners.map((_, i) => `<button class="hero-dot" onclick="heroGo(${i})" aria-label="Slide ${i + 1}"></button>`).join('') : '';
+
+  heroIndex = 0;
+  updateHeroUI();
+  startHeroAutoplay();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function updateHeroUI() {
+  const track = document.getElementById('hero-track');
+  track.style.transform = `translateX(-${heroIndex * 100}%)`;
+  document.querySelectorAll('#hero-dots .hero-dot').forEach((d, i) => d.classList.toggle('active', i === heroIndex));
+}
+
+function heroGo(i) {
+  if (!heroSlides.length) return;
+  heroIndex = (i + heroSlides.length) % heroSlides.length;
+  updateHeroUI();
+  startHeroAutoplay();
+}
+
+function startHeroAutoplay() {
+  clearInterval(heroTimer);
+  if (heroIsDefault || heroSlides.length <= 1) return;
+  heroTimer = setInterval(() => heroGo(heroIndex + 1), 5500);
+}
+
+const heroCarouselEl = document.getElementById('hero-carousel');
+heroCarouselEl.addEventListener('mouseenter', () => clearInterval(heroTimer));
+heroCarouselEl.addEventListener('mouseleave', startHeroAutoplay);
+
+async function loadHero() {
+  renderHeroDefault();
+  try {
+    const { banners } = await apiFetch('/banners');
+    renderHero(banners.filter(b => b.isActive));
+  } catch (err) {
+    console.error('Gagal memuat banner:', err.message);
+  }
+}
+
+loadHero();
+</script>
+
+</body>
+</html>

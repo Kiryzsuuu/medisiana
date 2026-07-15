@@ -100,7 +100,7 @@
 <script>
 if (getToken()) {
   const user = getUser();
-  window.location.href = user?.role === 'admin' ? 'admin-books.html' : 'dashboard.html';
+  window.location.href = user?.role === 'admin' ? 'admin-books.html' : 'home.html';
 }
 
 async function doLogin() {
@@ -124,7 +124,7 @@ async function doLogin() {
       body: JSON.stringify({ email, password }),
     });
     setSession(token, user);
-    window.location.href = user.role === 'admin' ? 'admin-books.html' : 'dashboard.html';
+    window.location.href = user.role === 'admin' ? 'admin-books.html' : 'home.html';
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.style.display = 'block';
