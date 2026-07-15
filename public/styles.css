@@ -843,12 +843,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
   padding: 40px;
 }
 .login-card {
-  width: 100%; max-width: 388px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 40px 38px;
-  box-shadow: var(--shadow-card);
+  width: 100%; max-width: 380px;
   opacity: 0; transform: translateY(18px);
   animation: lbFadeUp .55s ease .2s forwards;
 }
@@ -1286,7 +1281,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
   .lb-subtitle { font-size: 15px; }
   .lb-desc { font-size: 13.5px; }
   .login-form-side { padding: 28px 20px 40px; }
-  .login-card { max-width: 100%; padding: 30px 24px; box-shadow: none; border: none; }
+  .login-card { max-width: 100%; }
 }
 
 @media (max-width: 640px) {
