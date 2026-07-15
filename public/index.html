@@ -10,97 +10,68 @@
 </head>
 <body>
 
-<div class="login">
+<div class="al">
+  <div class="al-orb al-orb-1" aria-hidden="true"></div>
+  <div class="al-orb al-orb-2" aria-hidden="true"></div>
 
-  <!-- Brand side -->
-  <div class="login-brand">
-    <div class="login-particles" aria-hidden="true">
-      <i class="ti ti-stethoscope login-particle"></i>
-      <i class="ti ti-vaccine login-particle"></i>
-      <i class="ti ti-pill login-particle"></i>
-      <i class="ti ti-heartbeat login-particle"></i>
-      <i class="ti ti-dna-2 login-particle"></i>
-      <i class="ti ti-microscope login-particle"></i>
+  <div class="al-content">
+
+    <div class="al-logo">
+      <div class="al-logo-mark"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
     </div>
 
-    <div style="position:relative;z-index:1">
-      <div class="brand" style="padding:0">
-        <div class="brand-logo login-logo-pulse"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
-        <div class="brand-name">Medi<span>siana</span></div>
+    <h1 class="al-title">Medisiana <span>AI</span></h1>
+    <p class="al-subtitle">Your Intelligent Medical Learning Companion</p>
+    <p class="al-desc">
+      Platform pembelajaran pendidikan dokter berbasis AI yang menyediakan tutor
+      interaktif, diskusi kasus, latihan soal, dan penjelasan medis yang cepat,
+      akurat, dan mudah dipahami.
+    </p>
+
+    <div class="al-card">
+      <div class="al-field">
+        <label class="al-label" for="email">Email Kampus</label>
+        <input class="al-input" id="email" type="email" placeholder="nama@fk.universitasmu.ac.id" autocomplete="email" />
       </div>
-    </div>
-
-    <div class="lb-feat">
-      <h1 style="font-size:30px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:32px;letter-spacing:-.5px">
-        Belajar kedokteran<br>lebih cerdas bersama<br>Medina AI
-      </h1>
-
-      <div class="lb-feat-item">
-        <div class="lb-feat-ic"><i class="ti ti-robot" aria-hidden="true"></i></div>
-        <div>
-          <div class="lb-feat-title">Tutor AI Socratis</div>
-          <div class="lb-feat-desc">Medina mendorong kamu berpikir dulu sebelum memberi jawaban.</div>
+      <div class="al-field">
+        <label class="al-label" for="password">Password</label>
+        <div class="al-input-wrap">
+          <input class="al-input" id="password" type="password" placeholder="Masukkan password" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()" />
+          <button type="button" class="al-eye" id="toggle-pw" onclick="togglePassword()" aria-label="Tampilkan password"><i class="ti ti-eye" aria-hidden="true"></i></button>
         </div>
       </div>
-      <div class="lb-feat-item">
-        <div class="lb-feat-ic"><i class="ti ti-books" aria-hidden="true"></i></div>
-        <div>
-          <div class="lb-feat-title">Bersumber dari Buku Terverifikasi</div>
-          <div class="lb-feat-desc">Jawaban langsung dari Harrison, Guyton, Robbins, dan buku pilihan admin.</div>
-        </div>
-      </div>
-      <div class="lb-feat-item">
-        <div class="lb-feat-ic"><i class="ti ti-users-group" aria-hidden="true"></i></div>
-        <div>
-          <div class="lb-feat-title">Belajar Kolaboratif</div>
-          <div class="lb-feat-desc">Study room, diskusi kasus klinis, dan tanya Medina bareng teman.</div>
-        </div>
-      </div>
-    </div>
 
-    <div style="position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,.6);font-weight:500">
-      © 2025 Medisiana · Platform Edukasi FK
-    </div>
-  </div>
-
-  <!-- Form side -->
-  <div class="login-form-side">
-    <div class="login-form">
-      <h2 class="login-h">Selamat datang 👋</h2>
-      <p class="login-p">Masuk ke akun kamu untuk mulai belajar.</p>
-
-      <div class="field">
-        <label class="field-label">Email kampus</label>
-        <input class="input" id="email" type="email" placeholder="nama@fk.universitasmu.ac.id" />
-      </div>
-      <div class="field">
-        <label class="field-label">Password</label>
-        <input class="input" id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
-      </div>
-
-      <div class="flex items-center justify-between mb-18">
-        <label class="flex items-center gap-8 fs-13 text-soft" style="cursor:pointer">
-          <input type="checkbox" style="accent-color:var(--blue)" /> Ingat saya
+      <div class="al-row">
+        <label class="al-check">
+          <input type="checkbox" /> <span>Ingat saya</span>
         </label>
-        <span class="link fs-13">Lupa password?</span>
+        <span class="al-link">Lupa password?</span>
       </div>
 
-      <p id="login-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin:-8px 0 14px"></p>
+      <p id="login-error" class="al-error" style="display:none"></p>
 
-      <button class="btn btn-primary btn-block btn-lg" id="login-btn" onclick="doLogin()">Masuk</button>
+      <button class="al-submit" id="login-btn" onclick="doLogin()">Masuk</button>
 
-      <p class="text-mut fs-13 mt-18" style="text-align:center">
-        Belum punya akun? Hubungi admin institusi kamu.
-      </p>
+      <p class="al-foot">Belum punya akun? Hubungi admin institusi kamu.</p>
     </div>
-  </div>
 
+    <div class="al-copyright">© 2025 Medisiana &middot; Platform Edukasi FK</div>
+
+  </div>
 </div>
 
 <script>
 if (getToken()) {
   const user = getUser();
   window.location.href = user?.role === 'admin' ? 'admin-books.html' : 'home.html';
+}
+
+function togglePassword() {
+  const input = document.getElementById('password');
+  const icon = document.querySelector('#toggle-pw i');
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  icon.className = show ? 'ti ti-eye-off' : 'ti ti-eye';
 }
 
 async function doLogin() {
