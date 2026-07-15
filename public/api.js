@@ -44,8 +44,8 @@ function requireAuth(requiredRole) {
     window.location.href = 'index.html';
     return null;
   }
-  if (requiredRole && user.role !== requiredRole) {
-    window.location.href = user.role === 'admin' ? 'admin-books.html' : 'dashboard.html';
+  if (requiredRole && requiredRole !== 'any' && user.role !== requiredRole && user.role !== 'admin') {
+    window.location.href = user.role === 'admin' ? 'admin-books.html' : 'home.html';
     return null;
   }
   return user;
@@ -109,6 +109,7 @@ function toast(message, type = 'info', duration = 4200) {
 
 function toastSuccess(message) { return toast(message, 'success'); }
 function toastError(message) { return toast(message, 'error'); }
+function showToast(message, type = 'info') { return toast(message, type); }
 
 /* ── Custom confirm dialog ──
    Replaces native confirm() with a styled modal matching the app's design.

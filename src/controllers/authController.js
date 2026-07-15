@@ -19,6 +19,10 @@ function publicUser(user) {
     role: user.role,
     angkatan: user.angkatan,
     avatarUrl: user.avatarUrl,
+    phone: user.phone,
+    address: user.address,
+    university: user.university,
+    bio: user.bio,
     isVerified: user.isVerified,
   };
 }
@@ -134,4 +138,32 @@ async function resetPassword(req, res, next) {
   }
 }
 
-module.exports = { register, login, logout, me, verifyEmail, forgotPassword, resetPassword };
+async function updateProfile(req, res, next) {
+  try {
+    const { fullName, angkatan, phone, address, university, bio, avatarUrl } = req.body;
+    if (!fullName) return res.status(400).json({ error: 'Nama lengkap wajib diisi' });
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { fullName, angkatan, phone, address, university, bio, ...(avatarUrl !== undefined && { avatarUrl }) },
+      { new: true }
+    );
+    res.json({ user: publicUser(updated) });
+  } catch (err) { next(err); }
+}
+
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'currentPassword dan newPassword wajib diisi' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'Password baru minimal 8 karakter' });
+    const user = await User.findById(req.user._id);
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) return res.status(401).json({ error: 'Password saat ini salah' });
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    await sendMail('password-changed', user.email, { fullName: user.fullName });
+    res.json({ message: 'Password berhasil diubah' });
+  } catch (err) { next(err); }
+}
+
+module.exports = { register, login, logout, me, verifyEmail, forgotPassword, resetPassword, updateProfile, changePassword };

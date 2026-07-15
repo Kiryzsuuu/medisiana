@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana — Profil Saya</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+  <style>
+    .profile-wrap { max-width: 680px; display: flex; flex-direction: column; gap: 20px; }
+    .avatar-section {
+      display: flex; align-items: center; gap: 20px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      box-shadow: var(--shadow-soft);
+    }
+    .avatar-big {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: var(--blue-soft); color: var(--blue-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 800; flex-shrink: 0;
+      overflow: hidden; border: 3px solid var(--blue-mid);
+    }
+    .avatar-big img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-info { flex: 1; }
+    .avatar-name { font-size: 18px; font-weight: 800; color: var(--ink); }
+    .avatar-role { font-size: 12.5px; color: var(--ink-mut); margin-top: 3px; font-weight: 500; }
+    .avatar-actions { display: flex; gap: 10px; margin-top: 12px; }
+    #avatar-input { display: none; }
+    .section-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .section-title i { color: var(--blue); font-size: 18px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .save-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .verified-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #109C77; background: #DFF7EF; padding: 5px 11px; border-radius: 20px; }
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .avatar-section { flex-direction: column; text-align: center; }
+      .avatar-actions { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+
+      <a href="chat.html"><button class="new-btn"><i class="ti ti-plus" aria-hidden="true"></i> Tanya Medina</button></a>
+
+      <div class="nav-label">Menu</div>
+      <nav class="nav-menu">
+        <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
+        <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
+        <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
+        <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
+        <a href="wellness.html" class="nav-link"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
+      </nav>
+
+      <div class="nav-label" style="margin-top:10px">Akun</div>
+      <nav class="nav-menu">
+        <a href="profile.html" class="nav-link active"><i class="ti ti-user-circle" aria-hidden="true"></i> Profil Saya</a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div>
+            <div class="side-user-name" id="side-name">—</div>
+            <div class="side-user-role" id="side-role">—</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Profil Saya</div>
+          <div class="head-sub">Kelola informasi akun kamu</div>
+        </div>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <div class="profile-wrap">
+
+          <!-- Avatar & Info -->
+          <div class="avatar-section">
+            <div class="avatar-big" id="avatar-display">—</div>
+            <div class="avatar-info">
+              <div class="avatar-name" id="avatar-name">—</div>
+              <div class="avatar-role" id="avatar-role">—</div>
+              <div class="avatar-actions">
+                <button class="btn btn-soft btn-sm" onclick="document.getElementById('avatar-input').click()">
+                  <i class="ti ti-camera"></i> Ganti Foto
+                </button>
+                <button class="btn btn-ghost btn-sm" id="remove-avatar-btn" onclick="removeAvatar()" style="display:none">
+                  <i class="ti ti-trash"></i> Hapus
+                </button>
+              </div>
+              <input type="file" id="avatar-input" accept="image/*" onchange="handleAvatarChange(event)" />
+            </div>
+          </div>
+
+          <!-- Info Pribadi -->
+          <div class="card">
+            <div class="section-title"><i class="ti ti-user"></i> Informasi Pribadi</div>
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label">Nama Lengkap</label>
+                <input class="input" id="f-fullName" type="text" placeholder="Nama lengkap kamu" />
+              </div>
+              <div class="field">
+                <label class="field-label">Angkatan</label>
+                <input class="input" id="f-angkatan" type="number" placeholder="2022" />
+              </div>
+              <div class="field">
+                <label class="field-label">Nomor HP</label>
+                <input class="input" id="f-phone" type="tel" placeholder="08xxxxxxxxxx" />
+              </div>
+              <div class="field">
+                <label class="field-label">Universitas</label>
+                <input class="input" id="f-university" type="text" placeholder="Nama universitas" />
+              </div>
+              <div class="field full">
+                <label class="field-label">Alamat</label>
+                <input class="input" id="f-address" type="text" placeholder="Alamat lengkap" />
+              </div>
+              <div class="field full">
+                <label class="field-label">Bio</label>
+                <textarea class="input textarea" id="f-bio" rows="3" placeholder="Ceritakan sedikit tentang dirimu..."></textarea>
+              </div>
+            </div>
+            <div class="save-row">
+              <button class="btn btn-primary" id="save-profile-btn" onclick="saveProfile()">
+                <i class="ti ti-device-floppy"></i> Simpan Perubahan
+              </button>
+              <span id="profile-msg" style="font-size:12.5px;font-weight:600;display:none"></span>
+            </div>
+          </div>
+
+          <!-- Email & Status -->
+          <div class="card">
+            <div class="section-title"><i class="ti ti-mail"></i> Email & Status Akun</div>
+            <div class="field">
+              <label class="field-label">Email</label>
+              <input class="input" id="f-email" type="email" disabled style="opacity:.6;cursor:not-allowed" />
+            </div>
+            <div id="verified-status"></div>
+          </div>
+
+          <!-- Ganti Password -->
+          <div class="card">
+            <div class="section-title"><i class="ti ti-lock"></i> Ganti Password</div>
+            <div class="form-grid">
+              <div class="field full">
+                <label class="field-label">Password Saat Ini</label>
+                <input class="input" id="f-current-pw" type="password" placeholder="••••••••" />
+              </div>
+              <div class="field">
+                <label class="field-label">Password Baru</label>
+                <input class="input" id="f-new-pw" type="password" placeholder="Min. 8 karakter" />
+              </div>
+              <div class="field">
+                <label class="field-label">Konfirmasi Password Baru</label>
+                <input class="input" id="f-confirm-pw" type="password" placeholder="Ulangi password baru" />
+              </div>
+            </div>
+            <div class="save-row">
+              <button class="btn btn-primary" id="save-pw-btn" onclick="changePassword()">
+                <i class="ti ti-lock-check"></i> Ubah Password
+              </button>
+              <span id="pw-msg" style="font-size:12.5px;font-weight:600;display:none"></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const currentUser = requireAuth('student');
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+let pendingAvatarBase64 = undefined;
+
+function renderAvatar(avatarUrl, fullName) {
+  const el = document.getElementById('avatar-display');
+  if (avatarUrl) {
+    el.innerHTML = `<img src="${avatarUrl}" alt="avatar" />`;
+    document.getElementById('remove-avatar-btn').style.display = 'inline-flex';
+  } else {
+    el.textContent = initials(fullName);
+    document.getElementById('remove-avatar-btn').style.display = 'none';
+  }
+}
+
+function fillForm(user) {
+  document.getElementById('f-fullName').value   = user.fullName || '';
+  document.getElementById('f-angkatan').value   = user.angkatan || '';
+  document.getElementById('f-phone').value      = user.phone || '';
+  document.getElementById('f-university').value = user.university || '';
+  document.getElementById('f-address').value    = user.address || '';
+  document.getElementById('f-bio').value        = user.bio || '';
+  document.getElementById('f-email').value      = user.email || '';
+
+  document.getElementById('avatar-name').textContent = user.fullName;
+  document.getElementById('avatar-role').textContent = user.angkatan ? `FK · Angkatan ${user.angkatan}` : 'Mahasiswa FK';
+  document.getElementById('side-avatar').textContent = initials(user.fullName);
+  document.getElementById('side-name').textContent   = user.fullName;
+  document.getElementById('side-role').textContent   = user.angkatan ? `FK · Angkatan ${user.angkatan}` : 'Mahasiswa FK';
+
+  renderAvatar(user.avatarUrl, user.fullName);
+
+  const verifiedEl = document.getElementById('verified-status');
+  verifiedEl.innerHTML = user.isVerified
+    ? `<span class="verified-badge"><i class="ti ti-circle-check"></i> Email terverifikasi</span>`
+    : `<span class="chip chip-amber"><i class="ti ti-alert-circle"></i> Email belum diverifikasi</span>`;
+}
+
+function handleAvatarChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Ukuran foto maksimal 2MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingAvatarBase64 = ev.target.result;
+    const el = document.getElementById('avatar-display');
+    el.innerHTML = `<img src="${pendingAvatarBase64}" alt="avatar" />`;
+    document.getElementById('remove-avatar-btn').style.display = 'inline-flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeAvatar() {
+  pendingAvatarBase64 = '';
+  const el = document.getElementById('avatar-display');
+  el.textContent = initials(document.getElementById('f-fullName').value);
+  document.getElementById('remove-avatar-btn').style.display = 'none';
+}
+
+function showMsg(id, text, isError) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.style.color = isError ? 'var(--red)' : 'var(--green)';
+  el.style.display = 'inline';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+async function saveProfile() {
+  const btn = document.getElementById('save-profile-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> Menyimpan...';
+  try {
+    const body = {
+      fullName:   document.getElementById('f-fullName').value.trim(),
+      angkatan:   document.getElementById('f-angkatan').value || undefined,
+      phone:      document.getElementById('f-phone').value.trim(),
+      university: document.getElementById('f-university').value.trim(),
+      address:    document.getElementById('f-address').value.trim(),
+      bio:        document.getElementById('f-bio').value.trim(),
+    };
+    if (pendingAvatarBase64 !== undefined) body.avatarUrl = pendingAvatarBase64;
+
+    const { user } = await apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify(body) });
+    setSession(getToken(), user);
+    pendingAvatarBase64 = undefined;
+    fillForm(user);
+    showMsg('profile-msg', '✓ Profil berhasil disimpan', false);
+  } catch (err) {
+    showMsg('profile-msg', err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Simpan Perubahan';
+  }
+}
+
+async function changePassword() {
+  const currentPw = document.getElementById('f-current-pw').value;
+  const newPw     = document.getElementById('f-new-pw').value;
+  const confirmPw = document.getElementById('f-confirm-pw').value;
+
+  if (newPw !== confirmPw) { showMsg('pw-msg', 'Password baru tidak cocok', true); return; }
+
+  const btn = document.getElementById('save-pw-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> Menyimpan...';
+  try {
+    await apiFetch('/auth/password', { method: 'PUT', body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw }) });
+    document.getElementById('f-current-pw').value = '';
+    document.getElementById('f-new-pw').value = '';
+    document.getElementById('f-confirm-pw').value = '';
+    showMsg('pw-msg', '✓ Password berhasil diubah', false);
+  } catch (err) {
+    showMsg('pw-msg', err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-lock-check"></i> Ubah Password';
+  }
+}
+
+async function loadProfile() {
+  try {
+    const { user } = await apiFetch('/auth/me');
+    setSession(getToken(), user);
+    fillForm(user);
+  } catch (err) {
+    showToast('Gagal memuat profil', 'error');
+  }
+}
+
+loadProfile();
+</script>
+
+</body>
+</html>
