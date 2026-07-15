@@ -7,17 +7,17 @@ const ChatMessage = require('../models/ChatMessage');
 const RagMissLog = require('../models/RagMissLog');
 
 async function getChatHistory(sessionId, limit = 10) {
-  if (!sessionId) return '(Sesi baru — belum ada riwayat)';
+  if (!sessionId) return '(Sesi baru - belum ada riwayat)';
   const messages = await ChatMessage.find({ sessionId }).sort({ createdAt: -1 }).limit(limit).lean();
   return messages
     .reverse()
     .map((m) => `${m.role === 'user' ? 'Mahasiswa' : 'Medina'}: ${m.content}`)
-    .join('\n') || '(Sesi baru — belum ada riwayat)';
+    .join('\n') || '(Sesi baru - belum ada riwayat)';
 }
 
 async function chat(req, res, next) {
   try {
-    const { message, sessionId: bodySessionId, mode = 'chat' } = req.body;
+    const { message, sessionId: bodySessionId, mode = 'chat', category = '' } = req.body;
     if (!message) return res.status(400).json({ error: 'message wajib diisi' });
 
     const userId = req.user._id;
@@ -28,12 +28,13 @@ async function chat(req, res, next) {
       session = await ChatSession.create({
         userId,
         mode,
+        category,
         title: message.slice(0, 60),
       });
     }
 
     const config = await getAiConfig();
-    const { chunks, score } = await searchRAG(message, angkatan, { topK: config.topK });
+    const { chunks, score } = await searchRAG(message, angkatan, { topK: config.topK, category: session.category });
 
     let promptType;
     if (score === 0 || chunks.length === 0) {

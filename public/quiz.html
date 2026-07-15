@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Latihan Soal</title>
+  <title>Medisiana - Latihan Soal</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -22,10 +22,17 @@
 
       <button class="new-btn" onclick="newSession()"><i class="ti ti-plus" aria-hidden="true"></i> Sesi Latihan Baru</button>
 
+      <div class="nav-label">Mata Kuliah</div>
+      <select class="select mb-14" id="quiz-category" style="width:100%" onchange="setQuizCategory(this.value)">
+        <option value="">Semua Kategori</option>
+      </select>
+
       <div class="nav-label">Menu</div>
       <nav class="nav-menu mb-22">
+        <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
         <a href="quiz.html" class="nav-link active"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
         <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
         <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
@@ -41,10 +48,10 @@
 
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
           <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
@@ -60,6 +67,7 @@
           <div class="head-sub flex items-center gap-6"><span class="dot dot-live"></span> Medina buatkan soal dari buku, lalu evaluasi jawabanmu</div>
         </div>
         <a href="chat.html" class="btn btn-soft btn-sm" style="margin-right:8px"><i class="ti ti-robot" aria-hidden="true"></i> Ke Medina AI</a>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -68,7 +76,7 @@
           <div class="empty">
             <div class="empty-ic" style="background:#FEF2DC;color:var(--amber)"><i class="ti ti-pencil" aria-hidden="true"></i></div>
             <div class="empty-title">Mulai latihan soal 📝</div>
-            <div class="empty-sub">Sebutkan topik yang mau dilatih (cth: "Buatkan soal tentang siklus Krebs") — Medina akan membuat 1 soal dari buku aktif.</div>
+            <div class="empty-sub">Sebutkan topik yang mau dilatih (cth: "Buatkan soal tentang siklus Krebs") - Medina akan membuat 1 soal dari buku aktif.</div>
           </div>
         </div>
 
@@ -92,7 +100,7 @@
       <div class="rp-block">
         <div class="rp-label"><i class="ti ti-books" aria-hidden="true"></i> Sumber Soal Terakhir</div>
         <div id="sources-list">
-          <div class="fs-12 text-mut">Belum ada sumber — minta soal dulu.</div>
+          <div class="fs-12 text-mut">Belum ada sumber - minta soal dulu.</div>
         </div>
       </div>
 
@@ -139,6 +147,7 @@ if (currentUser) {
   document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
   document.getElementById('side-name').textContent = currentUser.fullName;
   document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+  buildUserDropdown(currentUser);
 }
 
 function renderThreadList() {
@@ -208,7 +217,7 @@ function renderChatMessages(messages) {
       <div class="empty">
         <div class="empty-ic" style="background:#FEF2DC;color:var(--amber)"><i class="ti ti-pencil" aria-hidden="true"></i></div>
         <div class="empty-title">Sesi latihan baru 📝</div>
-        <div class="empty-sub">Sebutkan topik yang mau dilatih — Medina akan membuat 1 soal dari buku aktif.</div>
+        <div class="empty-sub">Sebutkan topik yang mau dilatih - Medina akan membuat 1 soal dari buku aktif.</div>
       </div>`;
     return;
   }
@@ -237,11 +246,29 @@ async function openSession(id) {
   }
 }
 
+let currentQuizCategory = '';
+
+function setQuizCategory(cat) {
+  currentQuizCategory = cat;
+}
+
+async function loadQuizCategories() {
+  try {
+    const { books } = await apiFetch('/books');
+    const categories = [...new Set(books.map(b => b.category).filter(Boolean))].sort();
+    const select = document.getElementById('quiz-category');
+    select.innerHTML = '<option value="">Semua Kategori</option>' +
+      categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
 function newSession() {
   currentSessionId = null;
   renderThreadList();
   renderChatMessages([]);
-  document.getElementById('sources-list').innerHTML = '<div class="fs-12 text-mut">Belum ada sumber — minta soal dulu.</div>';
+  document.getElementById('sources-list').innerHTML = '<div class="fs-12 text-mut">Belum ada sumber - minta soal dulu.</div>';
 }
 
 async function send() {
@@ -270,7 +297,7 @@ async function send() {
   try {
     const data = await apiFetch('/chat', {
       method: 'POST',
-      body: JSON.stringify({ message: text, sessionId: currentSessionId, mode: 'quiz' }),
+      body: JSON.stringify({ message: text, sessionId: currentSessionId, mode: 'quiz', category: currentQuizCategory }),
     });
     document.getElementById('typing')?.remove();
 
@@ -299,6 +326,7 @@ async function send() {
 }
 
 loadSessions();
+loadQuizCategories();
 </script>
 
 </body>

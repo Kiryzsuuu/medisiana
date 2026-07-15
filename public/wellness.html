@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Kesehatan Diri</title>
+  <title>Medisiana - Kesehatan Diri</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -24,8 +24,10 @@
 
       <div class="nav-label">Menu</div>
       <nav class="nav-menu">
+        <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
         <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
         <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
         <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
@@ -34,10 +36,10 @@
 
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
           <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
@@ -49,8 +51,9 @@
       <div class="head">
         <div class="flex-1">
           <div class="head-title">Kesehatan Diri</div>
-          <div class="head-sub">Pantau tidur, stres, dan keseimbangan belajarmu — bukan pengganti tenaga medis profesional</div>
+          <div class="head-sub">Pantau tidur, stres, dan keseimbangan belajarmu - bukan pengganti tenaga medis profesional</div>
         </div>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -127,7 +130,7 @@
         <div class="card card-flat" style="background:#E8F8F2;border-color:#B8ECD9;padding:13px">
           <div class="fs-12 text-soft" style="line-height:1.6">
             <i class="ti ti-info-circle text-blue" aria-hidden="true"></i>
-            Ceritakan bagaimana kabarmu, atau tanya soal pola tidur/belajarmu. Medina akan lihat data check-in 7 harimu. Ini <strong>bukan pengganti konselor atau tenaga medis</strong> — kalau kamu merasa berat, hubungi layanan konseling kampus ya.
+            Ceritakan bagaimana kabarmu, atau tanya soal pola tidur/belajarmu. Medina akan lihat data check-in 7 harimu. Ini <strong>bukan pengganti konselor atau tenaga medis</strong> - kalau kamu merasa berat, hubungi layanan konseling kampus ya.
           </div>
         </div>
       </div>
@@ -145,6 +148,7 @@
 
 <script>
 const currentUser = requireAuth('student');
+buildUserDropdown(currentUser);
 
 let selectedMood = null;
 let todayLog = null;
@@ -219,7 +223,7 @@ function renderTrend(logs) {
     <div class="flex items-center gap-8 mb-22" style="height:90px;align-items:flex-end">
       ${logs.map(l => `
         <div class="flex-1" style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
-          <div style="width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--blue),var(--blue-bright));height:${Math.min(100, ((l.sleepHours || 0) / maxSleep) * 100)}%;min-height:${l.sleepHours ? 4 : 0}px" title="${l.sleepHours ?? '—'} jam"></div>
+          <div style="width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--blue),var(--blue-bright));height:${Math.min(100, ((l.sleepHours || 0) / maxSleep) * 100)}%;min-height:${l.sleepHours ? 4 : 0}px" title="${l.sleepHours ?? '-'} jam"></div>
           <div class="fs-11 text-mut">${dayLabel(l.date)}</div>
         </div>
       `).join('')}
@@ -229,7 +233,7 @@ function renderTrend(logs) {
     <div class="flex items-center gap-8" style="height:70px;align-items:flex-end">
       ${logs.map(l => `
         <div class="flex-1" style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
-          <div style="width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--amber),#F7C948);height:${l.stressLevel ? (l.stressLevel / 5) * 100 : 0}%;min-height:${l.stressLevel ? 4 : 0}px" title="${l.stressLevel ?? '—'}/5"></div>
+          <div style="width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--amber),#F7C948);height:${l.stressLevel ? (l.stressLevel / 5) * 100 : 0}%;min-height:${l.stressLevel ? 4 : 0}px" title="${l.stressLevel ?? '-'}/5"></div>
           <div class="fs-11 text-mut">${dayLabel(l.date)}</div>
         </div>
       `).join('')}

@@ -6,7 +6,7 @@ function pdfFilter(req, file, cb) {
 }
 
 // PDFs are held in memory just long enough to stream straight into MongoDB
-// GridFS (see src/config/gridfs.js) — nothing touches local disk.
+// GridFS (see src/config/gridfs.js) - nothing touches local disk.
 const uploadPdf = multer({
   storage: multer.memoryStorage(),
   fileFilter: pdfFilter,

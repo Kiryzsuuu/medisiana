@@ -1,5 +1,5 @@
 /* ============================================================
-   Medisiana — Shared Navigation & UI Script
+   Medisiana - Shared Navigation & UI Script
    ============================================================ */
 
 // ── Active nav highlight ──

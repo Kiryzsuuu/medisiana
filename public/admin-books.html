@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana Admin — Kelola Buku</title>
+  <title>Medisiana Admin - Kelola Buku</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -59,17 +59,17 @@
         <div class="grid grid-3 mb-22">
           <div class="stat">
             <div class="stat-ic sb-blue"><i class="ti ti-books" aria-hidden="true"></i></div>
-            <div class="stat-num" id="stat-total">—</div>
+            <div class="stat-num" id="stat-total">-</div>
             <div class="stat-lbl">Total Buku</div>
           </div>
           <div class="stat">
             <div class="stat-ic sb-green"><i class="ti ti-database" aria-hidden="true"></i></div>
-            <div class="stat-num" id="stat-chunks">—</div>
+            <div class="stat-num" id="stat-chunks">-</div>
             <div class="stat-lbl">Total Chunks RAG</div>
           </div>
           <div class="stat">
             <div class="stat-ic sb-purple"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
-            <div class="stat-num" id="stat-active">—</div>
+            <div class="stat-num" id="stat-active">-</div>
             <div class="stat-lbl">Buku Aktif</div>
           </div>
         </div>
@@ -130,7 +130,7 @@
     <div class="field"><label class="field-label">Judul Buku</label><input class="input" id="book-title" placeholder="cth: Harrison's Internal Medicine" /></div>
     <div class="field"><label class="field-label">Penulis</label><input class="input" id="book-author" placeholder="cth: Kasper et al." /></div>
     <div class="field"><label class="field-label">Kategori</label><select class="select" id="book-category"><option>Interna</option><option>Fisiologi</option><option>Patologi</option><option>Farmakologi</option><option>Anatomi</option><option>Kurikulum</option><option>Referensi</option></select></div>
-    <div class="field"><label class="field-label">Angkatan Aktif (opsional)</label><input class="input" id="book-activefor" placeholder="cth: 2022,2023 — kosongkan untuk semua angkatan" /></div>
+    <div class="field"><label class="field-label">Angkatan Aktif (opsional)</label><input class="input" id="book-activefor" placeholder="cth: 2022,2023 - kosongkan untuk semua angkatan" /></div>
     <div class="flex gap-10 mt-18">
       <button class="btn btn-ghost flex-1" onclick="closeUploadModal()">Batal</button>
       <button class="btn btn-primary flex-1" id="upload-submit-btn" onclick="startUpload()"><i class="ti ti-upload" aria-hidden="true"></i> Upload & Index</button>
@@ -195,8 +195,8 @@ async function loadBooks() {
             <div><div class="fw-700"></div><div class="fs-12 text-mut"></div></div>
           </div>
         </td>
-        <td>${b.category ? `<span class="chip chip-gray">${escapeHtml(b.category)}</span>` : '<span class="text-mut">—</span>'}</td>
-        <td class="fw-700">${b.totalChunks ? b.totalChunks.toLocaleString('id-ID') : '<span class="text-mut">—</span>'}</td>
+        <td>${b.category ? `<span class="chip chip-gray">${escapeHtml(b.category)}</span>` : '<span class="text-mut">-</span>'}</td>
+        <td class="fw-700">${b.totalChunks ? b.totalChunks.toLocaleString('id-ID') : '<span class="text-mut">-</span>'}</td>
         <td>${statusChip(b)}</td>
         <td><input type="checkbox" ${b.isActive ? 'checked' : ''} style="accent-color:var(--blue)" onchange="toggleActive('${b._id}', this.checked)" /></td>
         <td>

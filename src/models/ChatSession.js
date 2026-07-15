@@ -4,6 +4,7 @@ const chatSessionSchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   title:     { type: String, default: 'Sesi Baru' },
   mode:      { type: String, enum: ['chat', 'quiz'], default: 'chat' },
+  category:  { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

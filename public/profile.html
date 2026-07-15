@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Profil Saya</title>
+  <title>Medisiana - Profil Saya</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -60,6 +60,7 @@
         <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
         <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
         <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
         <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
@@ -73,10 +74,10 @@
 
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
           <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
@@ -90,6 +91,7 @@
           <div class="head-title">Profil Saya</div>
           <div class="head-sub">Kelola informasi akun kamu</div>
         </div>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -98,10 +100,10 @@
 
           <!-- Avatar & Info -->
           <div class="avatar-section">
-            <div class="avatar-big" id="avatar-display">—</div>
+            <div class="avatar-big" id="avatar-display">-</div>
             <div class="avatar-info">
-              <div class="avatar-name" id="avatar-name">—</div>
-              <div class="avatar-role" id="avatar-role">—</div>
+              <div class="avatar-name" id="avatar-name">-</div>
+              <div class="avatar-role" id="avatar-role">-</div>
               <div class="avatar-actions">
                 <button class="btn btn-soft btn-sm" onclick="document.getElementById('avatar-input').click()">
                   <i class="ti ti-camera"></i> Ganti Foto
@@ -195,6 +197,7 @@
 
 <script>
 const currentUser = requireAuth('student');
+buildUserDropdown(currentUser);
 
 function initials(name) {
   return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');

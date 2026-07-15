@@ -10,7 +10,7 @@ const ENV_KEY_BY_PROVIDER = {
 /**
  * Resolves Medina's active runtime config: RAG settings, prompt overrides,
  * and which AI provider/model/key to call. API key resolution order is
- * DB (set via admin panel) → matching .env var — so the app keeps working
+ * DB (set via admin panel) → matching .env var - so the app keeps working
  * with just .env until an admin sets a key in the UI.
  */
 async function getAiConfig() {

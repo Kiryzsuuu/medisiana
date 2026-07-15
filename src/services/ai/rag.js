@@ -4,15 +4,18 @@ const Book = require('../../models/Book');
 const DEFAULT_TOP_K = 5;
 
 /**
- * Retrieval-augmented search using MongoDB's built-in text index — no
+ * Retrieval-augmented search using MongoDB's built-in text index - no
  * external embedding provider required. Keyword-based, not semantic: it
  * matches on shared words/stems (via MongoDB's text index), not paraphrases.
  */
-async function searchRAG(query, angkatan, { topK = DEFAULT_TOP_K } = {}) {
-  const activeBookIds = await Book.find({
+async function searchRAG(query, angkatan, { topK = DEFAULT_TOP_K, category } = {}) {
+  const bookFilter = {
     isActive: true,
     $or: [{ activeFor: { $size: 0 } }, { activeFor: angkatan }],
-  }).distinct('_id');
+  };
+  if (category) bookFilter.category = category;
+
+  const activeBookIds = await Book.find(bookFilter).distinct('_id');
 
   if (activeBookIds.length === 0) return { chunks: [], score: 0 };
 
@@ -26,7 +29,7 @@ async function searchRAG(query, angkatan, { topK = DEFAULT_TOP_K } = {}) {
 
   return {
     chunks: results,
-    // Text search either finds matches or it doesn't — there's no
+    // Text search either finds matches or it doesn't - there's no
     // meaningful 0-1 similarity score like with vector search, so callers
     // that gate on "score < threshold" just need chunks.length to matter.
     score: results.length > 0 ? 1 : 0,

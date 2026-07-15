@@ -8,7 +8,7 @@ const { sendMail } = require('../services/mailer/sender');
 /**
  * Indexing runs in-process (no Redis/Bull queue in this build) but is fired
  * asynchronously so the upload request returns immediately with status "pending".
- * No external embedding API is used — chunks are searched via MongoDB's own
+ * No external embedding API is used - chunks are searched via MongoDB's own
  * text index (see src/services/ai/rag.js).
  */
 async function indexBook(book) {

@@ -11,7 +11,7 @@ const documentChunkSchema = new mongoose.Schema({
 });
 
 documentChunkSchema.index({ bookId: 1 });
-// Keyword search index — RAG retrieval runs entirely on MongoDB's own text
+// Keyword search index - RAG retrieval runs entirely on MongoDB's own text
 // search, no external embedding provider required.
 documentChunkSchema.index({ content: 'text' });
 

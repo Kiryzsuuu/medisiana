@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana Admin — Konfigurasi AI</title>
+  <title>Medisiana Admin - Konfigurasi AI</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -76,7 +76,7 @@
             <div class="card mb-18">
               <div class="card-head">
                 <div class="card-title">Provider AI</div>
-                <span class="chip chip-blue" id="provider-active-chip">—</span>
+                <span class="chip chip-blue" id="provider-active-chip">-</span>
               </div>
 
               <div class="field">
@@ -97,7 +97,7 @@
 
               <div class="field" style="margin-bottom:0">
                 <label class="field-label flex justify-between">
-                  API Key <span class="fs-11 fw-700" id="ai-key-status">—</span>
+                  API Key <span class="fs-11 fw-700" id="ai-key-status">-</span>
                 </label>
                 <input class="input" id="ai-key" type="password" placeholder="Masukkan API key baru untuk mengganti..." autocomplete="off" />
                 <div class="fs-11 text-mut mt-6">Kosongkan kalau tidak ingin mengubah key yang sudah tersimpan. Key tidak pernah ditampilkan kembali setelah disimpan, demi keamanan.</div>
@@ -150,7 +150,7 @@ const PROVIDER_LABEL = { anthropic: 'Anthropic (Claude)', openai: 'OpenAI (GPT)'
 function onProviderChange() {
   const provider = document.getElementById('ai-provider').value;
   document.getElementById('provider-active-chip').textContent = PROVIDER_LABEL[provider] || provider;
-  document.getElementById('ai-model-default').textContent = `Default: ${providerDefaults[provider] || '—'}`;
+  document.getElementById('ai-model-default').textContent = `Default: ${providerDefaults[provider] || '-'}`;
   document.getElementById('ai-key').value = '';
 
   const status = apiKeyStatus[provider] || 'none';
@@ -195,7 +195,7 @@ async function saveConfig() {
 
   const chatPrompt = document.getElementById('prompt-chat').value.trim();
   const fallbackPrompt = document.getElementById('prompt-fallback').value.trim();
-  // Only store as an "override" if it actually differs from the built-in default —
+  // Only store as an "override" if it actually differs from the built-in default -
   // otherwise leave promptOverrides empty so future default updates still apply.
   const promptOverrides = {};
   if (chatPrompt && chatPrompt !== promptDefaults.CHAT) promptOverrides.CHAT = chatPrompt;

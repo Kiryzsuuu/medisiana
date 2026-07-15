@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana Admin — Kelola User</title>
+  <title>Medisiana Admin - Kelola User</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -42,7 +42,7 @@
       <div class="head">
         <div class="flex-1">
           <div class="head-title">Kelola User</div>
-          <div class="head-sub" id="head-sub">— mahasiswa terdaftar</div>
+          <div class="head-sub" id="head-sub">- mahasiswa terdaftar</div>
         </div>
         <button class="btn btn-ghost" style="margin-right:8px" onclick="show('m-import')"><i class="ti ti-file-import" aria-hidden="true"></i> Import CSV</button>
         <button class="btn btn-primary" onclick="openCreateModal()"><i class="ti ti-user-plus" aria-hidden="true"></i> Tambah User</button>
@@ -53,10 +53,10 @@
         <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
 
         <div class="grid grid-4 mb-22">
-          <div class="stat"><div class="stat-ic sb-blue"><i class="ti ti-users" aria-hidden="true"></i></div><div class="stat-num" id="stat-total">—</div><div class="stat-lbl">Total Mahasiswa</div></div>
-          <div class="stat"><div class="stat-ic sb-green"><i class="ti ti-user-check" aria-hidden="true"></i></div><div class="stat-num" id="stat-active">—</div><div class="stat-lbl">Akun Aktif</div></div>
-          <div class="stat"><div class="stat-ic sb-amber"><i class="ti ti-mail-exclamation" aria-hidden="true"></i></div><div class="stat-num" id="stat-unverified">—</div><div class="stat-lbl">Belum Verifikasi</div></div>
-          <div class="stat"><div class="stat-ic sb-red"><i class="ti ti-user-off" aria-hidden="true"></i></div><div class="stat-num" id="stat-suspended">—</div><div class="stat-lbl">Suspended</div></div>
+          <div class="stat"><div class="stat-ic sb-blue"><i class="ti ti-users" aria-hidden="true"></i></div><div class="stat-num" id="stat-total">-</div><div class="stat-lbl">Total Mahasiswa</div></div>
+          <div class="stat"><div class="stat-ic sb-green"><i class="ti ti-user-check" aria-hidden="true"></i></div><div class="stat-num" id="stat-active">-</div><div class="stat-lbl">Akun Aktif</div></div>
+          <div class="stat"><div class="stat-ic sb-amber"><i class="ti ti-mail-exclamation" aria-hidden="true"></i></div><div class="stat-num" id="stat-unverified">-</div><div class="stat-lbl">Belum Verifikasi</div></div>
+          <div class="stat"><div class="stat-ic sb-red"><i class="ti ti-user-off" aria-hidden="true"></i></div><div class="stat-num" id="stat-suspended">-</div><div class="stat-lbl">Suspended</div></div>
         </div>
 
         <div class="card mb-18" style="padding:14px 18px">
@@ -187,7 +187,7 @@ async function loadUsers() {
             <div><div class="fw-700"></div><div class="fs-12 text-mut"></div></div>
           </div>
         </td>
-        <td>${u.angkatan || '—'}</td>
+        <td>${u.angkatan || '-'}</td>
         <td><span class="chip chip-blue">${u.role === 'admin' ? 'Admin' : 'Mahasiswa'}</span></td>
         <td class="text-mut fs-13">${new Date(u.createdAt).toLocaleDateString('id-ID')}</td>
         <td>${statusChip(u)}</td>

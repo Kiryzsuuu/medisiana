@@ -62,7 +62,7 @@ async function askAi(req, res, next) {
     }).sort({ date: 1 });
 
     const wellnessData = logs.length
-      ? logs.map((l) => `- ${l.date}: tidur ${l.sleepHours ?? '—'} jam, belajar ${l.studyHours ?? '—'} jam, stres ${l.stressLevel ?? '—'}/5, mood ${l.mood || '—'}${l.note ? `, catatan: "${l.note}"` : ''}`).join('\n')
+      ? logs.map((l) => `- ${l.date}: tidur ${l.sleepHours ?? '-'} jam, belajar ${l.studyHours ?? '-'} jam, stres ${l.stressLevel ?? '-'}/5, mood ${l.mood || '-'}${l.note ? `, catatan: "${l.note}"` : ''}`).join('\n')
       : '(Belum ada data check-in 7 hari terakhir)';
 
     const config = await getAiConfig();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Study Room</title>
+  <title>Medisiana - Study Room</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -23,8 +23,10 @@
       <button class="new-btn" onclick="show('m-room')"><i class="ti ti-plus" aria-hidden="true"></i> Buat Room</button>
       <div class="nav-label">Menu</div>
       <nav class="nav-menu">
+        <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
         <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
         <a href="rooms.html" class="nav-link active"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
         <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
@@ -32,10 +34,10 @@
       </nav>
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
           <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
@@ -50,6 +52,7 @@
           <div class="head-sub">Belajar bersama, tanya Medina bareng teman</div>
         </div>
         <button class="btn btn-primary" onclick="show('m-room')"><i class="ti ti-plus" aria-hidden="true"></i> Buat Room</button>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -82,8 +85,8 @@
           <div class="flex items-center gap-10">
             <div class="room-emoji" style="width:42px;height:42px;font-size:20px;margin:0;background:var(--blue-soft)" id="live-emoji">💬</div>
             <div class="flex-1">
-              <div class="fw-800 fs-13" id="live-name">—</div>
-              <div class="fs-11 text-mut flex items-center gap-6" id="live-meta"><span class="dot dot-live"></span> —</div>
+              <div class="fw-800 fs-13" id="live-name">-</div>
+              <div class="fs-11 text-mut flex items-center gap-6" id="live-meta"><span class="dot dot-live"></span> -</div>
             </div>
           </div>
         </div>
@@ -138,6 +141,7 @@
 
 <script>
 const currentUser = requireAuth('student');
+buildUserDropdown(currentUser);
 
 let allRooms = [];
 let activeRoomId = null;
@@ -308,7 +312,7 @@ async function askMedina() {
   const input = document.getElementById('live-in');
   const question = input.value.trim();
   if (!question || !activeRoomId) {
-    input.placeholder = '@Medina — ketik pertanyaan lalu klik Tanya Medina lagi...';
+    input.placeholder = '@Medina - ketik pertanyaan lalu klik Tanya Medina lagi...';
     input.focus();
     return;
   }

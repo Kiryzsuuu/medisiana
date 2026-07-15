@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.use(auth);
 
-// Mahasiswa & admin boleh melihat daftar buku (PRD §10 — "Lihat materi/buku" untuk semua role)
+// Mahasiswa & admin boleh melihat daftar buku (PRD §10 - "Lihat materi/buku" untuk semua role)
 router.get('/', ctrl.listBooks);
 router.get('/:id', ctrl.getBook);
 router.get('/:id/file', ctrl.getBookFile);

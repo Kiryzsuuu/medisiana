@@ -223,7 +223,7 @@ async function analyticsActiveStudents(req, res, next) {
 
 const PROVIDERS = ['anthropic', 'openai', 'gemini', 'groq'];
 
-/** Never send actual API key values to the client — only where each one resolves from. */
+/** Never send actual API key values to the client - only where each one resolves from. */
 function apiKeyStatus(config) {
   const status = {};
   for (const p of PROVIDERS) {

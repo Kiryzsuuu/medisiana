@@ -1,6 +1,6 @@
 /**
  * Unified multi-provider AI caller. Medina's system prompt + RAG pipeline
- * stay provider-agnostic — only this module knows the wire format for each
+ * stay provider-agnostic - only this module knows the wire format for each
  * provider's API. Admin picks the active provider (and optionally the API
  * key + model) from the admin panel; see src/services/ai/config.js for how
  * that resolves against .env fallbacks.

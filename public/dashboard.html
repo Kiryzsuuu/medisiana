@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Dashboard</title>
+  <title>Medisiana - Dashboard</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -27,6 +27,7 @@
         <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link active"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
         <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
         <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
         <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
@@ -40,12 +41,11 @@
 
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
-          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
       </div>
     </aside>
@@ -57,6 +57,7 @@
           <div class="head-title">Dashboard</div>
           <div class="head-sub" id="head-sub">Selamat belajar hari ini</div>
         </div>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -68,17 +69,17 @@
         <div class="grid grid-3 mb-22">
           <div class="stat">
             <div class="stat-ic sb-blue"><i class="ti ti-message-chatbot" aria-hidden="true"></i></div>
-            <div class="stat-num" id="stat-sessions">—</div>
+            <div class="stat-num" id="stat-sessions">-</div>
             <div class="stat-lbl">Sesi Belajar dengan Medina</div>
           </div>
           <div class="stat">
             <div class="stat-ic sb-purple"><i class="ti ti-users-group" aria-hidden="true"></i></div>
-            <div class="stat-num" id="stat-rooms">—</div>
+            <div class="stat-num" id="stat-rooms">-</div>
             <div class="stat-lbl">Study Room Diikuti</div>
           </div>
           <div class="stat">
             <div class="stat-ic sb-green"><i class="ti ti-stethoscope" aria-hidden="true"></i></div>
-            <div class="stat-num" id="stat-cases">—</div>
+            <div class="stat-num" id="stat-cases">-</div>
             <div class="stat-lbl">Diskusi Kasus Tersedia</div>
           </div>
         </div>
@@ -144,6 +145,7 @@ if (currentUser) {
   document.getElementById('side-name').textContent = currentUser.fullName;
   document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
   document.getElementById('head-sub').textContent = currentUser.angkatan ? `Angkatan ${currentUser.angkatan}` : 'Selamat belajar hari ini';
+  buildUserDropdown(currentUser);
 }
 
 const TIMELINE_ICON = {
@@ -247,7 +249,7 @@ async function loadDashboard() {
           <div class="row-ic sb-amber"><i class="ti ti-book-2" aria-hidden="true"></i></div>
           <div class="flex-1">
             <div class="row-main"></div>
-            <div class="row-sub">${escapeHtml(b.category || '—')}${b.totalChunks ? ` · ${b.totalChunks.toLocaleString('id-ID')} chunks` : ''}</div>
+            <div class="row-sub">${escapeHtml(b.category || '-')}${b.totalChunks ? ` · ${b.totalChunks.toLocaleString('id-ID')} chunks` : ''}</div>
           </div>
         </div>
       `).join('');

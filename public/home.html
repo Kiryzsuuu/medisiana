@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Beranda</title>
+  <title>Medisiana - Beranda</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -89,6 +89,7 @@
         <a href="home.html" class="nav-link active"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
         <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
         <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
         <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
@@ -102,12 +103,11 @@
 
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
-          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
       </div>
     </aside>
@@ -119,6 +119,7 @@
           <div class="head-title">Beranda</div>
           <div class="head-sub" id="head-sub">Selamat datang di Medisiana</div>
         </div>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -217,6 +218,7 @@ if (currentUser) {
   document.getElementById('head-sub').textContent = currentUser.angkatan ? `Angkatan ${currentUser.angkatan}` : 'Selamat datang di Medisiana';
   document.getElementById('home-greeting').textContent = `Halo, ${firstName}! 👋`;
   document.getElementById('home-title').textContent = 'Siap belajar hari ini?';
+  buildUserDropdown(currentUser);
 }
 
 // ── Hero Carousel ──
@@ -245,7 +247,7 @@ function renderHeroDefault() {
     <div class="hero-default-body">
       <div class="hero-default-icon"><i class="ti ti-sparkles" aria-hidden="true"></i></div>
       <div class="hero-default-title"></div>
-      <div class="hero-default-desc">Tanya apa saja tentang materi kedokteranmu — Medina siap membantu kamu berpikir sebelum memberi jawaban lengkap dari buku terverifikasi.</div>
+      <div class="hero-default-desc">Tanya apa saja tentang materi kedokteranmu - Medina siap membantu kamu berpikir sebelum memberi jawaban lengkap dari buku terverifikasi.</div>
       <a href="chat.html"><button class="btn btn-white"><i class="ti ti-robot" aria-hidden="true"></i> Mulai Belajar</button></a>
     </div>
   `;

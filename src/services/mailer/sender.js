@@ -25,7 +25,7 @@ const SUBJECTS = {
 
 async function sendMail(templateName, to, vars = {}) {
   if (!process.env.SMTP_USER) {
-    console.log(`[mailer] SMTP tidak dikonfigurasi — skip kirim email "${templateName}" ke ${to}`);
+    console.log(`[mailer] SMTP tidak dikonfigurasi - skip kirim email "${templateName}" ke ${to}`);
     return;
   }
   const html = renderTemplate(templateName, vars);

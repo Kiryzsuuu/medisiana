@@ -1,5 +1,5 @@
 /* ============================================================
-   Medisiana — Shared API client & auth guard
+   Medisiana - Shared API client & auth guard
    ============================================================ */
 
 const API_BASE = '/api';
@@ -55,6 +55,33 @@ function logout() {
   clearSession();
   window.location.href = 'index.html';
 }
+
+/* ── Idle auto-logout ──
+   Logs the user out automatically after a period of no activity (mouse,
+   keyboard, scroll, touch, click). Any activity resets the timer, so an
+   active session never gets logged out mid-use. Only runs on protected
+   pages that already have a valid session. */
+const IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 menit tanpa aktivitas
+let idleTimer = null;
+
+function resetIdleTimer() {
+  if (!getToken()) return;
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    clearSession();
+    window.location.href = 'index.html?expired=1';
+  }, IDLE_LIMIT_MS);
+}
+
+function initIdleLogout() {
+  if (!getToken()) return;
+  ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach((evt) => {
+    document.addEventListener(evt, resetIdleTimer, { passive: true });
+  });
+  resetIdleTimer();
+}
+
+document.addEventListener('DOMContentLoaded', initIdleLogout);
 
 /* ── Toast notifications ──
    Replaces native alert() with a small, dismissible, auto-expiring card
@@ -184,3 +211,60 @@ function initMobileNav() {
 }
 
 document.addEventListener('DOMContentLoaded', initMobileNav);
+
+// ── User dropdown (topbar kanan) ──
+function buildUserDropdown(user) {
+  function initials(name) {
+    return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  }
+  const wrap = document.getElementById('user-dropdown-wrap');
+  if (!wrap || !user) return;
+
+  const avatarHtml = user.avatarUrl
+    ? `<img src="${user.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`
+    : initials(user.fullName);
+  const role = user.angkatan ? `FK · Angkatan ${user.angkatan}` : (user.role === 'admin' ? 'Administrator' : 'Mahasiswa FK');
+
+  wrap.innerHTML = `
+    <button class="user-pill-btn" id="user-pill-btn" onclick="toggleUserDropdown()">
+      <div class="av av-sm" style="background:var(--blue-soft);color:var(--blue-deep)" id="topbar-avatar">${avatarHtml}</div>
+      <div class="user-pill-info">
+        <div class="user-pill-name" id="topbar-name"></div>
+        <div class="user-pill-role">${role}</div>
+      </div>
+      <i class="ti ti-chevron-down" style="font-size:14px;color:var(--ink-mut)"></i>
+    </button>
+    <div class="user-dropdown" id="user-dropdown">
+      <a href="profile.html" class="user-dropdown-item">
+        <i class="ti ti-settings"></i> Account Settings
+      </a>
+      <div class="user-dropdown-divider"></div>
+      <div class="user-dropdown-item danger" onclick="confirmLogout()">
+        <i class="ti ti-logout"></i> Keluar
+      </div>
+    </div>
+  `;
+  document.getElementById('topbar-name').textContent = user.fullName;
+
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target)) closeUserDropdown();
+  });
+}
+
+function toggleUserDropdown() {
+  document.getElementById('user-dropdown')?.classList.toggle('open');
+}
+function closeUserDropdown() {
+  document.getElementById('user-dropdown')?.classList.remove('open');
+}
+
+async function confirmLogout() {
+  closeUserDropdown();
+  const ok = await confirmDialog('Kamu yakin ingin keluar dari Medisiana?', {
+    title: 'Konfirmasi Keluar',
+    confirmLabel: 'Ya, Keluar',
+    cancelLabel: 'Batal',
+    danger: true,
+  });
+  if (ok) logout();
+}

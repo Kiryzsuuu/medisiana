@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Diskusi Kasus</title>
+  <title>Medisiana - Diskusi Kasus</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -22,8 +22,10 @@
       <button class="new-btn" onclick="show('m-case')"><i class="ti ti-plus" aria-hidden="true"></i> Post Kasus</button>
       <div class="nav-label">Menu</div>
       <nav class="nav-menu mb-22">
+        <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
         <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
         <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
         <a href="cases.html" class="nav-link active"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
@@ -39,10 +41,10 @@
 
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
           <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
@@ -54,8 +56,9 @@
       <div class="head">
         <div class="flex-1">
           <div class="head-title" style="font-size:18px" id="case-title">Pilih kasus di sebelah kiri</div>
-          <div class="head-sub" id="case-meta">—</div>
+          <div class="head-sub" id="case-meta">-</div>
         </div>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -70,7 +73,7 @@
 
         <div class="composer" id="comment-composer" style="display:none">
           <div class="composer-box">
-            <div class="av av-sm" id="comment-avatar" style="margin-left:-6px">—</div>
+            <div class="av av-sm" id="comment-avatar" style="margin-left:-6px">-</div>
             <input id="cin" placeholder="Tulis pendapat atau DD kamu..." onkeydown="if(event.key==='Enter')sendComment()" />
             <button class="composer-ic" onclick="askHint()" title="Minta hint Medina" id="hint-btn"><i class="ti ti-robot" aria-hidden="true"></i></button>
             <button class="composer-send" onclick="sendComment()"><i class="ti ti-send" aria-hidden="true"></i></button>
@@ -92,7 +95,7 @@
         <div class="card card-flat" style="background:#FEF2DC;border-color:#FCE3B8;padding:15px">
           <div class="flex gap-8">
             <i class="ti ti-bulb text-amber" style="font-size:20px;flex-shrink:0" aria-hidden="true"></i>
-            <div class="fs-12 text-soft" style="line-height:1.6">Medina memberi <strong>hint Socratic</strong> — bukan diagnosis langsung. Tujuannya melatih clinical reasoning kamu.</div>
+            <div class="fs-12 text-soft" style="line-height:1.6">Medina memberi <strong>hint Socratic</strong> - bukan diagnosis langsung. Tujuannya melatih clinical reasoning kamu.</div>
           </div>
         </div>
       </div>
@@ -130,6 +133,7 @@
 
 <script>
 const currentUser = requireAuth('student');
+buildUserDropdown(currentUser);
 
 let allCases = [];
 let activeCaseId = null;

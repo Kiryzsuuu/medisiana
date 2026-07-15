@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medisiana — Medina AI</title>
+  <title>Medisiana - Medina AI</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js"></script>
@@ -24,6 +24,7 @@
 
       <div class="nav-label">Menu</div>
       <nav class="nav-menu mb-22">
+        <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
         <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
         <a href="chat.html" class="nav-link active"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
         <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
@@ -41,10 +42,10 @@
 
       <div class="sidebar-foot">
         <div class="side-user">
-          <div class="av av-md av-white" id="side-avatar">—</div>
+          <div class="av av-md av-white" id="side-avatar">-</div>
           <div>
-            <div class="side-user-name" id="side-name">—</div>
-            <div class="side-user-role" id="side-role">—</div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
           </div>
           <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
         </div>
@@ -60,6 +61,7 @@
           <div class="head-sub flex items-center gap-6"><span class="dot dot-live"></span> Menjawab hanya dari buku terverifikasi</div>
         </div>
         <a href="quiz.html" class="btn btn-soft btn-sm" style="margin-right:8px"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
         <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
       </div>
 
@@ -68,7 +70,7 @@
           <div class="empty">
             <div class="empty-ic"><i class="ti ti-message-chatbot" aria-hidden="true"></i></div>
             <div class="empty-title">Mulai percakapan dengan Medina 🩺</div>
-            <div class="empty-sub">Tanyakan apa saja tentang materi kedokteranmu — Medina siap membantu kamu berpikir!</div>
+            <div class="empty-sub">Tanyakan apa saja tentang materi kedokteranmu - Medina siap membantu kamu berpikir!</div>
           </div>
         </div>
 
@@ -92,7 +94,7 @@
       <div class="rp-block">
         <div class="rp-label"><i class="ti ti-books" aria-hidden="true"></i> Sumber Jawaban Terakhir</div>
         <div id="sources-list">
-          <div class="fs-12 text-mut">Belum ada sumber — kirim pertanyaan dulu.</div>
+          <div class="fs-12 text-mut">Belum ada sumber - kirim pertanyaan dulu.</div>
         </div>
       </div>
 
@@ -100,7 +102,7 @@
         <div class="rp-label"><i class="ti ti-info-circle" aria-hidden="true"></i> Tentang Mode Ini</div>
         <div class="card card-flat" style="background:var(--blue-soft);border-color:var(--blue-mid);padding:15px">
           <div class="fs-12 text-soft" style="line-height:1.6">
-            Medina menggunakan <strong>pendekatan Socratic</strong> — ia bertanya balik untuk membantu kamu berpikir, bukan sekadar memberi jawaban. Semua jawaban bersumber dari buku yang diunggah admin.
+            Medina menggunakan <strong>pendekatan Socratic</strong> - ia bertanya balik untuk membantu kamu berpikir, bukan sekadar memberi jawaban. Semua jawaban bersumber dari buku yang diunggah admin.
           </div>
         </div>
       </div>
@@ -145,6 +147,7 @@ if (currentUser) {
   document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
   document.getElementById('side-name').textContent = currentUser.fullName;
   document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+  buildUserDropdown(currentUser);
 }
 
 function renderThreadList() {
@@ -214,7 +217,7 @@ function renderChatMessages(messages) {
       <div class="empty">
         <div class="empty-ic"><i class="ti ti-message-chatbot" aria-hidden="true"></i></div>
         <div class="empty-title">Sesi baru dimulai 🩺</div>
-        <div class="empty-sub">Tanyakan apa saja tentang materi kedokteranmu — Medina siap membantu kamu berpikir!</div>
+        <div class="empty-sub">Tanyakan apa saja tentang materi kedokteranmu - Medina siap membantu kamu berpikir!</div>
       </div>`;
     return;
   }
@@ -247,7 +250,7 @@ function newSession() {
   currentSessionId = null;
   renderThreadList();
   renderChatMessages([]);
-  document.getElementById('sources-list').innerHTML = '<div class="fs-12 text-mut">Belum ada sumber — kirim pertanyaan dulu.</div>';
+  document.getElementById('sources-list').innerHTML = '<div class="fs-12 text-mut">Belum ada sumber - kirim pertanyaan dulu.</div>';
 }
 
 async function send() {
@@ -304,7 +307,7 @@ async function send() {
   }
 }
 
-// Old dashboard links may still point here with ?mode=quiz — redirect to the
+// Old dashboard links may still point here with ?mode=quiz - redirect to the
 // dedicated quiz page instead of trying to toggle mode inline.
 if (new URLSearchParams(window.location.search).get('mode') === 'quiz') {
   window.location.replace('quiz.html');

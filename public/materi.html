@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana - Materi</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <div class="nav-label">Menu</div>
+      <nav class="nav-menu">
+        <a href="home.html" class="nav-link"><i class="ti ti-home" aria-hidden="true"></i> Beranda</a>
+        <a href="dashboard.html" class="nav-link"><i class="ti ti-layout-grid" aria-hidden="true"></i> Dashboard</a>
+        <a href="chat.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Medina AI</a>
+        <a href="materi.html" class="nav-link active"><i class="ti ti-books" aria-hidden="true"></i> Materi</a>
+        <a href="quiz.html" class="nav-link"><i class="ti ti-pencil" aria-hidden="true"></i> Latihan Soal</a>
+        <a href="rooms.html" class="nav-link"><i class="ti ti-users-group" aria-hidden="true"></i> Study Room</a>
+        <a href="cases.html" class="nav-link"><i class="ti ti-stethoscope" aria-hidden="true"></i> Diskusi Kasus</a>
+        <a href="wellness.html" class="nav-link"><i class="ti ti-heartbeat" aria-hidden="true"></i> Kesehatan Diri</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user">
+          <div class="av av-md av-white" id="side-avatar">-</div>
+          <div>
+            <div class="side-user-name" id="side-name">-</div>
+            <div class="side-user-role" id="side-role">-</div>
+          </div>
+          <a href="#" onclick="logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Materi</div>
+          <div class="head-sub">Buku dan bahan belajar, dikelompokkan per mata kuliah</div>
+        </div>
+        <div class="user-dropdown-wrap" id="user-dropdown-wrap"></div>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="flex items-center gap-8 mb-14" id="category-filters" style="flex-wrap:wrap">
+          <span class="chip chip-blue" data-cat="" onclick="setCategory('')">Semua</span>
+        </div>
+
+        <div id="materi-groups">
+          <div class="fs-13 text-mut">Memuat materi...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const currentUser = requireAuth('student');
+buildUserDropdown(currentUser);
+
+let allBooks = [];
+let currentCategory = '';
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function initials(name) {
+  return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+if (currentUser) {
+  document.getElementById('side-avatar').textContent = initials(currentUser.fullName);
+  document.getElementById('side-name').textContent = currentUser.fullName;
+  document.getElementById('side-role').textContent = currentUser.angkatan ? `FK · Angkatan ${currentUser.angkatan}` : 'Mahasiswa FK';
+}
+
+function setCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('#category-filters .chip').forEach(el => {
+    el.className = el.dataset.cat === cat ? 'chip chip-blue' : 'chip chip-gray';
+  });
+  renderGroups();
+}
+
+function renderGroups() {
+  const wrap = document.getElementById('materi-groups');
+  const filtered = currentCategory ? allBooks.filter(b => (b.category || 'Umum') === currentCategory) : allBooks;
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="fs-13 text-mut">Belum ada materi untuk kategori ini.</div>';
+    return;
+  }
+
+  const groups = {};
+  filtered.forEach(b => {
+    const cat = b.category || 'Umum';
+    (groups[cat] = groups[cat] || []).push(b);
+  });
+
+  wrap.innerHTML = Object.keys(groups).sort().map(cat => `
+    <div class="mb-22">
+      <div class="fw-800 fs-14 mb-10">${escapeHtml(cat)}</div>
+      <div class="grid grid-3">
+        ${groups[cat].map(b => `
+          <div class="row" style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px">
+            <div class="row-ic sb-amber"><i class="ti ti-book-2" aria-hidden="true"></i></div>
+            <div class="flex-1">
+              <div class="row-main fw-700 fs-13">${escapeHtml(b.title)}</div>
+              <div class="row-sub fs-12 text-mut">${escapeHtml(b.author || '-')}${b.totalChunks ? ` · ${b.totalChunks.toLocaleString('id-ID')} chunks` : ''}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadMateri() {
+  const errorEl = document.getElementById('page-error');
+  try {
+    const { books } = await apiFetch('/books');
+    allBooks = books;
+
+    const categories = [...new Set(books.map(b => b.category || 'Umum'))].sort();
+    const filtersEl = document.getElementById('category-filters');
+    filtersEl.innerHTML = '<span class="chip chip-blue" data-cat="" onclick="setCategory(\'\')">Semua</span>' +
+      categories.map(cat => `<span class="chip chip-gray" data-cat="${escapeHtml(cat)}" onclick="setCategory('${cat.replace(/'/g, "\\'")}')">${escapeHtml(cat)}</span>`).join('');
+
+    renderGroups();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+loadMateri();
+</script>
+
+</body>
+</html>
