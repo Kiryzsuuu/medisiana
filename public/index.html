@@ -10,52 +10,57 @@
 </head>
 <body>
 
-<div class="al">
-  <div class="al-orb al-orb-1" aria-hidden="true"></div>
-  <div class="al-orb al-orb-2" aria-hidden="true"></div>
+<div class="lp-page">
+  <div class="lp-card">
 
-  <div class="al-content">
-
-    <div class="al-logo">
-      <div class="al-logo-mark"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
-    </div>
-
-    <h1 class="al-title">Medisiana <span>AI</span></h1>
-    <p class="al-subtitle">Your Intelligent Medical Learning Companion</p>
-    <p class="al-desc">
-      Platform pembelajaran pendidikan dokter berbasis AI yang menyediakan tutor
-      interaktif, diskusi kasus, latihan soal, dan penjelasan medis yang cepat,
-      akurat, dan mudah dipahami.
-    </p>
-
-    <div class="al-card">
-      <div class="al-field">
-        <label class="al-label" for="email">Email Kampus</label>
-        <input class="al-input" id="email" type="email" placeholder="nama@fk.universitasmu.ac.id" autocomplete="email" />
-      </div>
-      <div class="al-field">
-        <label class="al-label" for="password">Password</label>
-        <div class="al-input-wrap">
-          <input class="al-input" id="password" type="password" placeholder="Masukkan password" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()" />
-          <button type="button" class="al-eye" id="toggle-pw" onclick="togglePassword()" aria-label="Tampilkan password"><i class="ti ti-eye" aria-hidden="true"></i></button>
+    <!-- Photo panel - image set by admin via Kelola Banner (placement: Halaman Login) -->
+    <div class="lp-photo" id="lp-photo">
+      <div class="lp-photo-overlay"></div>
+      <div class="lp-photo-content">
+        <div class="lp-photo-brand">Medisiana</div>
+        <div class="lp-photo-bottom">
+          <h1 class="lp-photo-title">Medisiana AI<br>Your Intelligent<br>Medical Learning<br>Companion</h1>
+          <p class="lp-photo-desc">
+            Platform pembelajaran pendidikan dokter berbasis AI yang menyediakan
+            tutor interaktif, diskusi kasus, latihan soal, dan penjelasan medis
+            yang cepat, akurat, dan mudah dipahami.
+          </p>
         </div>
       </div>
-
-      <div class="al-row">
-        <label class="al-check">
-          <input type="checkbox" /> <span>Ingat saya</span>
-        </label>
-        <span class="al-link">Lupa password?</span>
-      </div>
-
-      <p id="login-error" class="al-error" style="display:none"></p>
-
-      <button class="al-submit" id="login-btn" onclick="doLogin()">Masuk</button>
-
-      <p class="al-foot">Belum punya akun? Hubungi admin institusi kamu.</p>
     </div>
 
-    <div class="al-copyright">© 2025 Medisiana &middot; Platform Edukasi FK</div>
+    <!-- Form panel -->
+    <div class="lp-form-side">
+      <div class="lp-form">
+        <h2 class="lp-h">Selamat datang</h2>
+        <p class="lp-p">Masuk ke akun kamu untuk mulai belajar.</p>
+
+        <div class="al-field">
+          <label class="al-label" for="email">Email Kampus</label>
+          <input class="al-input" id="email" type="email" placeholder="nama@fk.universitasmu.ac.id" autocomplete="email" />
+        </div>
+        <div class="al-field">
+          <label class="al-label" for="password">Password</label>
+          <div class="al-input-wrap">
+            <input class="al-input" id="password" type="password" placeholder="Masukkan password" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()" />
+            <button type="button" class="al-eye" id="toggle-pw" onclick="togglePassword()" aria-label="Tampilkan password"><i class="ti ti-eye" aria-hidden="true"></i></button>
+          </div>
+        </div>
+
+        <div class="al-row">
+          <label class="al-check">
+            <input type="checkbox" /> <span>Ingat saya</span>
+          </label>
+          <span class="al-link">Lupa password?</span>
+        </div>
+
+        <p id="login-error" class="al-error" style="display:none"></p>
+
+        <button class="lp-submit" id="login-btn" onclick="doLogin()">Masuk</button>
+
+        <p class="al-foot">Belum punya akun? Hubungi admin institusi kamu.</p>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -65,6 +70,19 @@ if (getToken()) {
   const user = getUser();
   window.location.href = user?.role === 'admin' ? 'admin-books.html' : 'home.html';
 }
+
+async function loadLoginPhoto() {
+  try {
+    const { banner } = await apiFetch('/banners/public/login');
+    if (!banner || !banner.imageBase64) return;
+    const photoEl = document.getElementById('lp-photo');
+    photoEl.style.backgroundImage = `linear-gradient(rgba(15,25,50,.15), rgba(10,20,45,.55)), url('${banner.imageBase64}')`;
+    photoEl.classList.add('has-photo');
+  } catch (err) {
+    console.error('Gagal memuat foto login:', err.message);
+  }
+}
+loadLoginPhoto();
 
 function togglePassword() {
   const input = document.getElementById('password');
