@@ -152,6 +152,17 @@ if (currentAdmin) {
 }
 
 let debounceTimer = null;
+let indexPollTimer = null;
+
+// Auto-refreshes the book list while any book is still being indexed, so
+// admins see the "Indexing..." chip flip to "Siap" without a manual refresh
+// (indexing runs async on the server - see indexBookSafe in bookController.js).
+function pollIndexingStatus(books) {
+  clearInterval(indexPollTimer);
+  const stillIndexing = (books || []).some(b => b.indexStatus === 'processing');
+  if (!stillIndexing) return;
+  indexPollTimer = setInterval(loadBooks, 4000);
+}
 function debouncedLoad() { clearTimeout(debounceTimer); debounceTimer = setTimeout(loadBooks, 300); }
 
 function show(id){ document.getElementById(id).classList.add('show'); }
@@ -183,6 +194,7 @@ async function loadBooks() {
 
   try {
     const { books } = await apiFetch(`/books?${params.toString()}`);
+    pollIndexingStatus(books);
     let filtered = books;
     if (search) filtered = filtered.filter(b => b.title.toLowerCase().includes(search) || (b.author || '').toLowerCase().includes(search));
     if (status) filtered = filtered.filter(b => b.indexStatus === status);
@@ -202,7 +214,7 @@ async function loadBooks() {
         <td>
           <div class="flex items-center gap-14">
             <div class="row-ic sb-blue" style="width:38px;height:38px;font-size:17px"><i class="ti ti-book" aria-hidden="true"></i></div>
-            <div><div class="fw-700"></div><div class="fs-12 text-mut"></div></div>
+            <div><div class="fw-700 book-title-cell"></div><div class="fs-12 text-mut"></div></div>
           </div>
         </td>
         <td>${b.category ? `<span class="chip chip-gray">${escapeHtml(b.category)}</span>` : '<span class="text-mut">-</span>'}</td>
@@ -218,7 +230,7 @@ async function loadBooks() {
         </td>
       </tr>
     `).join('');
-    rows.querySelectorAll('.fw-700').forEach((el, i) => { el.textContent = filtered[i].title; });
+    rows.querySelectorAll('.book-title-cell').forEach((el, i) => { el.textContent = filtered[i].title; });
     rows.querySelectorAll('.fs-12.text-mut').forEach((el, i) => { el.textContent = `${filtered[i].author || ''}${filtered[i].edition ? ` · ${filtered[i].edition}` : ''}`; });
   } catch (err) {
     errorEl.textContent = err.message;
@@ -314,6 +326,7 @@ async function startUpload() {
   try {
     await apiFetch('/books', { method: 'POST', body: formData });
     closeUploadModal();
+    toastSuccess('Buku terunggah. Indexing berjalan di latar belakang, status akan otomatis diperbarui.');
     loadBooks();
   } catch (err) {
     errorEl.textContent = err.message;

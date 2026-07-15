@@ -11,6 +11,7 @@ router.post('/', ctrl.createRoom);
 router.get('/:id', ctrl.getRoom);
 router.post('/:id/join', ctrl.joinRoom);
 router.delete('/:id/leave', ctrl.leaveRoom);
+router.delete('/:id', ctrl.deleteRoom);
 router.get('/:id/messages', ctrl.getMessages);
 router.post('/:id/ask-ai', ctrl.askAi);
 

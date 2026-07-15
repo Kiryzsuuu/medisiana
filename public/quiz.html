@@ -175,7 +175,7 @@ function renderSources(sources) {
       <div class="rp-item-ic ${icons[i % icons.length]}"><i class="ti ti-book-2" aria-hidden="true"></i></div>
       <div>
         <div class="rp-item-title"></div>
-        <div class="rp-item-sub">${s.chapter ? `Bab ${escapeHtml(s.chapter)}` : ''}${s.chapter && s.page ? ' · ' : ''}${s.page ? `hal. ${s.page}` : ''}</div>
+        <div class="rp-item-sub">${s.chapter ? `Bab ${escapeHtml(s.chapter)}` : ''}${s.chapter && s.page ? ' · ' : ''}${s.page ? (bookFileUrl(s.bookId, s.page) ? `<a href="${bookFileUrl(s.bookId, s.page)}" target="_blank" rel="noopener" class="src-page-link">hal. ${s.page}</a>` : `hal. ${s.page}`) : ''}</div>
       </div>
     </div>
   `).join('');
@@ -191,7 +191,7 @@ function bubbleRow(role, text, time, sourcesHtml) {
     row.querySelector('.bubble').textContent = text;
   } else {
     row.innerHTML = `<div class="av av-sm" style="background:var(--amber);color:#fff">M</div><div><div class="bubble bubble-ai"></div>${sourcesHtml || ''}<div class="bubble-time">${time}</div></div>`;
-    row.querySelector('.bubble').textContent = text;
+    row.querySelector('.bubble').innerHTML = mdToHtml(text);
   }
   return row;
 }
@@ -212,7 +212,9 @@ function renderChatMessages(messages) {
     const time = new Date(m.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
     let sourcesHtml = '';
     if (m.role === 'assistant' && (m.sources || []).some(s => s.bookTitle)) {
-      sourcesHtml = m.sources.filter(s => s.bookTitle).map(s => `<div class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</div>`).join('');
+      sourcesHtml = m.sources.filter(s => s.bookTitle).map(s => (bookFileUrl(s.bookId, s.page)
+        ? `<a href="${bookFileUrl(s.bookId, s.page)}" target="_blank" rel="noopener" class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</a>`
+        : `<div class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</div>`)).join('');
     }
     chat.appendChild(bubbleRow(m.role === 'user' ? 'user' : 'ai', m.content, time, sourcesHtml));
   });
@@ -291,7 +293,9 @@ async function send() {
     currentSessionId = data.sessionId;
 
     const aiTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-    const sourcesHtml = (data.sources || []).filter(s => s.bookTitle).map(s => `<div class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</div>`).join('');
+    const sourcesHtml = (data.sources || []).filter(s => s.bookTitle).map(s => (bookFileUrl(s.bookId, s.page)
+        ? `<a href="${bookFileUrl(s.bookId, s.page)}" target="_blank" rel="noopener" class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</a>`
+        : `<div class="src"><i class="ti ti-book-2" aria-hidden="true"></i> ${escapeHtml(s.bookTitle)}${s.chapter ? ` · Bab ${escapeHtml(s.chapter)}` : ''}${s.page ? ` · hal. ${s.page}` : ''}</div>`)).join('');
     chat.appendChild(bubbleRow('ai', data.message, aiTime, sourcesHtml));
     chat.scrollTop = chat.scrollHeight;
     renderSources(data.sources);

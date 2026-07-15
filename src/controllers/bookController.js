@@ -1,7 +1,8 @@
 const Book = require('../models/Book');
 const DocumentChunk = require('../models/DocumentChunk');
 const { parsePdf } = require('../services/pdf/parser');
-const { chunkPages } = require('../services/pdf/chunker');
+const { pagesToMarkdown } = require('../services/pdf/toMarkdown');
+const { chunkText } = require('../services/pdf/chunker');
 const { uploadPdfBuffer, downloadPdfBuffer, deletePdf, openDownloadStream } = require('../config/gridfs');
 const { sendMail } = require('../services/mailer/sender');
 
@@ -18,7 +19,8 @@ async function indexBook(book) {
 
     const buffer = await downloadPdfBuffer(book.gridFsId);
     const pages = await parsePdf(buffer);
-    const rawChunks = chunkPages(pages);
+    const { text, pageRanges } = pagesToMarkdown(pages);
+    const rawChunks = chunkText(text, pageRanges);
 
     const BATCH = 200;
     let totalChunks = 0;

@@ -193,7 +193,8 @@ function commentRow(cm) {
     </div>
   `;
   row.querySelector('.fs-12').textContent = name;
-  row.querySelector('.bubble').textContent = cm.content;
+  if (isAi) row.querySelector('.bubble').innerHTML = mdToHtml(cm.content);
+  else row.querySelector('.bubble').textContent = cm.content;
   if (sourcesHtml) row.querySelector('.bubble').insertAdjacentHTML('beforeend', sourcesHtml);
   return row;
 }

@@ -83,6 +83,37 @@ function initIdleLogout() {
 
 document.addEventListener('DOMContentLoaded', initIdleLogout);
 
+/* ── Book source links ──
+   Builds a clickable URL to a book's PDF, jumping to the cited page via the
+   browser's native PDF viewer #page= fragment (see GET /books/:id/file). */
+function bookFileUrl(bookId, page) {
+  if (!bookId) return null;
+  const url = `${API_BASE}/books/${bookId}/file?token=${encodeURIComponent(getToken() || '')}`;
+  return page ? `${url}#page=${page}` : url;
+}
+
+/* ── Lightweight markdown renderer ──
+   AI responses use **bold**, *italic*, "- " bullet lists, and blank-line
+   paragraphs. Converts that to safe HTML (input is escaped first, so no
+   markdown-in-markdown injection risk) instead of showing raw asterisks. */
+function mdToHtml(text) {
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let html = esc(text || '');
+
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+
+  const blocks = html.split(/\n{2,}/).map((block) => {
+    const lines = block.split('\n');
+    const isList = lines.every((l) => /^\s*[-•]\s+/.test(l)) && lines.length > 0;
+    if (isList) {
+      return `<ul>${lines.map((l) => `<li>${l.replace(/^\s*[-•]\s+/, '')}</li>`).join('')}</ul>`;
+    }
+    return `<p>${lines.join('<br>')}</p>`;
+  });
+  return blocks.join('');
+}
+
 /* ── Toast notifications ──
    Replaces native alert() with a small, dismissible, auto-expiring card
    stacked in the corner of the screen. Call toast('Pesan', 'success'|'error'|'info'). */

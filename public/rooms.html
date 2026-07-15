@@ -78,6 +78,11 @@
               <div class="fw-800 fs-13" id="live-name">-</div>
               <div class="fs-11 text-mut flex items-center gap-6" id="live-meta"><span class="dot dot-live"></span> -</div>
             </div>
+            <button class="icon-btn" style="width:32px;height:32px;font-size:15px;color:var(--red);display:none" id="delete-room-btn" title="Hapus Room" onclick="deleteCurrentRoom()"><i class="ti ti-trash" aria-hidden="true"></i></button>
+          </div>
+          <div class="fs-11 text-mut mt-10" id="live-invite" style="display:none">
+            Kode invite: <strong id="live-invite-code" style="color:var(--ink);letter-spacing:.5px"></strong>
+            <button class="link fs-11" style="border:none;background:none;cursor:pointer;margin-left:4px" onclick="copyInviteCode()">Salin</button>
           </div>
         </div>
 
@@ -242,7 +247,8 @@ function appendLiveMessage(msg) {
     </div>
   `;
   el.querySelector('.fs-11').textContent = `${name} · ${formatTime(msg.createdAt || Date.now())}`;
-  el.querySelector('.fs-12').textContent = msg.content;
+  if (isAi) el.querySelector('.fs-12').innerHTML = mdToHtml(msg.content);
+  else el.querySelector('.fs-12').textContent = msg.content;
   container.appendChild(el);
   container.scrollTop = container.scrollHeight;
 }
@@ -261,6 +267,7 @@ async function openRoom(id) {
       }
       await apiFetch(`/rooms/${id}/join`, { method: 'POST', body: JSON.stringify({ inviteCode }) });
       await loadRooms();
+      toastSuccess(`Kamu bergabung ke room "${room.name}"`);
     }
 
     const { messages } = await apiFetch(`/rooms/${id}/messages`);
@@ -277,8 +284,40 @@ async function openRoom(id) {
     document.getElementById('live-msgs').innerHTML = '';
     messages.forEach(appendLiveMessage);
 
+    const isCreator = room.createdBy && String(room.createdBy._id || room.createdBy) === String(currentUser.id);
+    document.getElementById('delete-room-btn').style.display = (isCreator || currentUser.role === 'admin') ? 'flex' : 'none';
+
+    const inviteWrap = document.getElementById('live-invite');
+    if (isCreator && room.type === 'private' && room.inviteCode) {
+      document.getElementById('live-invite-code').textContent = room.inviteCode;
+      inviteWrap.style.display = 'block';
+    } else {
+      inviteWrap.style.display = 'none';
+    }
+
     document.getElementById('live-empty').style.display = 'none';
     document.getElementById('live-content').style.display = 'flex';
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+function copyInviteCode() {
+  const code = document.getElementById('live-invite-code').textContent;
+  navigator.clipboard?.writeText(code).then(() => toastSuccess('Kode invite disalin')).catch(() => {});
+}
+
+async function deleteCurrentRoom() {
+  const room = allRooms.find(r => r._id === activeRoomId);
+  if (!room) return;
+  if (!(await confirmDialog(`Hapus room "${room.name}"? Semua pesan di dalamnya akan ikut terhapus.`, { title: 'Hapus Room', confirmLabel: 'Ya, Hapus' }))) return;
+  try {
+    await apiFetch(`/rooms/${activeRoomId}`, { method: 'DELETE' });
+    activeRoomId = null;
+    document.getElementById('live-content').style.display = 'none';
+    document.getElementById('live-empty').style.display = 'block';
+    await loadRooms();
+    toastSuccess('Room dihapus');
   } catch (err) {
     toastError(err.message);
   }

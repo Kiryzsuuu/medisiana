@@ -69,6 +69,26 @@ async function joinRoom(req, res, next) {
   }
 }
 
+async function deleteRoom(req, res, next) {
+  try {
+    const room = await StudyRoom.findById(req.params.id);
+    if (!room) return res.status(404).json({ error: 'Room tidak ditemukan' });
+
+    const isCreator = room.createdBy && room.createdBy.equals(req.user._id);
+    if (!isCreator && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Hanya pembuat room atau admin yang bisa menghapus room ini' });
+    }
+
+    await RoomMessage.deleteMany({ roomId: room._id });
+    await room.deleteOne();
+
+    req.app.get('io')?.to(`room:${room._id}`).emit('room:deleted', { roomId: room._id });
+    res.json({ message: 'Room dihapus' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function leaveRoom(req, res, next) {
   try {
     const room = await StudyRoom.findById(req.params.id);
@@ -144,4 +164,4 @@ async function askAi(req, res, next) {
   }
 }
 
-module.exports = { listRooms, createRoom, getRoom, joinRoom, leaveRoom, getMessages, askAi };
+module.exports = { listRooms, createRoom, getRoom, joinRoom, leaveRoom, deleteRoom, getMessages, askAi };

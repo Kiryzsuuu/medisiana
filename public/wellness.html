@@ -261,7 +261,8 @@ function wellnessBubble(role, text) {
       <div class="fs-12 text-soft mt-6" style="line-height:1.55"></div>
     </div>
   `;
-  row.querySelector('.fs-12').textContent = text;
+  if (isAi) row.querySelector('.fs-12').innerHTML = mdToHtml(text);
+  else row.querySelector('.fs-12').textContent = text;
   return row;
 }
 

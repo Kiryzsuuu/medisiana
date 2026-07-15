@@ -44,7 +44,7 @@ function formatChunks(chunks) {
 }
 
 function toSources(chunks) {
-  return chunks.map((c) => ({ bookTitle: c.bookTitle, chapter: c.chapter, page: c.pageNumber }));
+  return chunks.map((c) => ({ bookId: c.bookId, bookTitle: c.bookTitle, chapter: c.chapter, page: c.pageNumber }));
 }
 
 module.exports = { searchRAG, formatChunks, toSources };
