@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const StudyRoom = require('../models/StudyRoom');
 const RoomMessage = require('../models/RoomMessage');
 const { buildPrompt } = require('../services/ai/prompts');
-const { searchRAG, formatChunks, toSources } = require('../services/ai/rag');
+const { searchRAGWithFallback, formatChunks, toSources } = require('../services/ai/rag');
 const { callAI } = require('../services/ai/providers');
 const { getAiConfig } = require('../services/ai/config');
 
@@ -122,7 +122,12 @@ async function askAi(req, res, next) {
     if (!room) return res.status(404).json({ error: 'Room tidak ditemukan' });
 
     const config = await getAiConfig();
-    const { chunks } = await searchRAG(question, req.user.angkatan, { topK: config.topK });
+    const { chunks } = await searchRAGWithFallback(question, req.user.angkatan, {
+      topK: config.topK,
+      provider: config.aiProvider,
+      apiKey: config.apiKey,
+      model: config.aiModel,
+    });
     const recentMessages = await RoomMessage.find({ roomId: room._id }).sort({ createdAt: -1 }).limit(20);
     const roomChatHistory = recentMessages
       .reverse()

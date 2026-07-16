@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Medisiana - Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=8" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
-  <script src="api.js"></script>
+  <script src="api.js?v=2"></script>
 </head>
 <body>
 
@@ -91,7 +91,7 @@
           <div class="card">
             <div class="card-head">
               <div class="card-title">Buku Tersedia</div>
-              <span class="chip chip-gray" id="badge-book-count"></span>
+              <a href="materi.html" class="fs-12 fw-700 text-blue" style="display:flex;align-items:center;gap:4px">Lihat Semua <i class="ti ti-chevron-right" aria-hidden="true" style="font-size:14px"></i></a>
             </div>
             <div id="books-list">
               <div class="text-mut fs-13">Memuat...</div>
@@ -226,19 +226,20 @@ async function loadDashboard() {
     renderTimeline(timelineItems);
 
     const books = booksRes.books;
-    document.getElementById('badge-book-count').textContent = `${books.length} buku`;
     const booksList = document.getElementById('books-list');
     if (!books.length) {
       booksList.innerHTML = '<div class="text-mut fs-13">Belum ada buku aktif untuk angkatanmu.</div>';
     } else {
-      booksList.innerHTML = books.slice(0, 5).map(b => `
-        <div class="row">
-          <div class="row-ic sb-amber"><i class="ti ti-book-2" aria-hidden="true"></i></div>
+      const COVERS = ['sb-blue', 'sb-amber', 'sb-green', 'sb-purple', 'sb-red'];
+      booksList.innerHTML = books.slice(0, 5).map((b, i) => `
+        <a href="materi.html" class="row" style="text-decoration:none;color:inherit">
+          <div class="book-cover ${COVERS[i % COVERS.length]}"><i class="ti ti-book-2" aria-hidden="true"></i></div>
           <div class="flex-1">
             <div class="row-main"></div>
             <div class="row-sub">${escapeHtml(b.category || '-')}${b.totalChunks ? ` · ${b.totalChunks.toLocaleString('id-ID')} chunks` : ''}</div>
           </div>
-        </div>
+          <i class="ti ti-chevron-right" aria-hidden="true" style="color:var(--ink-faint);font-size:16px"></i>
+        </a>
       `).join('');
       booksList.querySelectorAll('.row-main').forEach((el, i) => { el.textContent = books[i].title; });
     }

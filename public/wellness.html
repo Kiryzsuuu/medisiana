@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Medisiana - Kesehatan Diri</title>
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=8" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
-  <script src="api.js"></script>
+  <script src="api.js?v=2"></script>
 </head>
 <body>
 
@@ -59,17 +59,17 @@
           <div class="grid grid-2 mb-18" style="gap:20px">
             <div class="field" style="margin-bottom:0">
               <label class="field-label flex justify-between">Jam Tidur <span class="text-blue" id="val-sleep">7</span></label>
-              <input type="range" id="in-sleep" min="0" max="12" step="0.5" value="7" style="width:100%;accent-color:var(--blue)" oninput="document.getElementById('val-sleep').textContent=this.value" />
+              <input type="range" id="in-sleep" min="0" max="12" step="0.5" value="7" style="width:100%;accent-color:var(--green)" oninput="document.getElementById('val-sleep').textContent=this.value" />
             </div>
             <div class="field" style="margin-bottom:0">
               <label class="field-label flex justify-between">Jam Belajar <span class="text-blue" id="val-study">4</span></label>
-              <input type="range" id="in-study" min="0" max="16" step="0.5" value="4" style="width:100%;accent-color:var(--blue)" oninput="document.getElementById('val-study').textContent=this.value" />
+              <input type="range" id="in-study" min="0" max="16" step="0.5" value="4" style="width:100%;accent-color:var(--purple)" oninput="document.getElementById('val-study').textContent=this.value" />
             </div>
           </div>
 
           <div class="field mb-18">
             <label class="field-label flex justify-between">Tingkat Stres <span class="text-blue" id="val-stress">Santai</span></label>
-            <input type="range" id="in-stress" min="1" max="5" step="1" value="2" style="width:100%;accent-color:var(--amber)" oninput="updateStressLabel(this.value)" />
+            <input type="range" id="in-stress" min="1" max="5" step="1" value="2" style="width:100%;accent-color:var(--red)" oninput="updateStressLabel(this.value)" />
           </div>
 
           <div class="field mb-18">

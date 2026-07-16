@@ -38,6 +38,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/banners', bannerRoutes);
 app.use('/api/wellness', wellnessRoutes);
 
+// Public marketing page at the root; the login form itself stays at
+// /index.html (linked from the landing page's "Masuk" button).
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(errorHandler);

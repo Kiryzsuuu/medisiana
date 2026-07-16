@@ -100,6 +100,12 @@ function mdToHtml(text) {
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   let html = esc(text || '');
 
+  // Chat bubbles aren't documents - if the model still slips in headings or
+  // horizontal rules despite the prompt telling it not to, degrade them
+  // gracefully instead of showing raw "##"/"---" symbols.
+  html = html.replace(/^\s*#{1,6}\s+(.+)$/gm, '<strong>$1</strong>');
+  html = html.replace(/^\s*-{3,}\s*$/gm, '');
+
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
 

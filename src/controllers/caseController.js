@@ -1,6 +1,6 @@
 const CaseDiscussion = require('../models/CaseDiscussion');
 const { buildPrompt } = require('../services/ai/prompts');
-const { searchRAG, formatChunks, toSources } = require('../services/ai/rag');
+const { searchRAGWithFallback, formatChunks, toSources } = require('../services/ai/rag');
 const { callAI } = require('../services/ai/providers');
 const { getAiConfig } = require('../services/ai/config');
 
@@ -62,7 +62,12 @@ async function askAi(req, res, next) {
     if (!caseDoc) return res.status(404).json({ error: 'Kasus tidak ditemukan' });
 
     const config = await getAiConfig();
-    const { chunks } = await searchRAG(caseDoc.content, req.user.angkatan, { topK: config.topK });
+    const { chunks } = await searchRAGWithFallback(caseDoc.content, req.user.angkatan, {
+      topK: config.topK,
+      provider: config.aiProvider,
+      apiKey: config.apiKey,
+      model: config.aiModel,
+    });
     const comments = caseDoc.comments.map((c) => `- ${c.content}`).join('\n') || '(Belum ada komentar)';
 
     const systemPrompt = buildPrompt('CASE', {

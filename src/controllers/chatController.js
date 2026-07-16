@@ -1,5 +1,5 @@
 const { buildPrompt } = require('../services/ai/prompts');
-const { searchRAG, formatChunks, toSources } = require('../services/ai/rag');
+const { searchRAGWithFallback, formatChunks, toSources } = require('../services/ai/rag');
 const { callAI } = require('../services/ai/providers');
 const { getAiConfig } = require('../services/ai/config');
 const ChatSession = require('../models/ChatSession');
@@ -34,7 +34,13 @@ async function chat(req, res, next) {
     }
 
     const config = await getAiConfig();
-    const { chunks, score } = await searchRAG(message, angkatan, { topK: config.topK, category: session.category });
+    const { chunks, score } = await searchRAGWithFallback(message, angkatan, {
+      topK: config.topK,
+      category: session.category,
+      provider: config.aiProvider,
+      apiKey: config.apiKey,
+      model: config.aiModel,
+    });
 
     let promptType;
     if (score === 0 || chunks.length === 0) {
