@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medisiana Admin - Kelola Kartu Fitur</title>
+  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <script src="api.js?v=2"></script>
+</head>
+<body>
+
+<div class="page">
+  <div class="frame">
+
+    <!-- Admin Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"><i class="ti ti-heart-plus" aria-hidden="true"></i></div>
+        <div class="brand-name">Medi<span>siana</span></div>
+      </div>
+      <div style="background:rgba(255,255,255,.16);border-radius:11px;padding:8px 14px;margin-bottom:22px;font-size:11.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px">
+        <i class="ti ti-shield-lock" aria-hidden="true"></i> Panel Admin
+      </div>
+      <div class="nav-label">Kelola</div>
+      <nav class="nav-menu">
+        <a href="admin-books.html" class="nav-link"><i class="ti ti-books" aria-hidden="true"></i> Kelola Buku</a>
+        <a href="admin-users.html" class="nav-link"><i class="ti ti-users" aria-hidden="true"></i> Kelola User</a>
+        <a href="admin-banners.html" class="nav-link"><i class="ti ti-photo" aria-hidden="true"></i> Kelola Banner</a>
+        <a href="admin-features.html" class="nav-link active"><i class="ti ti-layout-grid-add" aria-hidden="true"></i> Kartu Fitur</a>
+        <a href="admin-ai.html" class="nav-link"><i class="ti ti-robot" aria-hidden="true"></i> Konfigurasi AI</a>
+        <a href="admin-analytics.html" class="nav-link"><i class="ti ti-chart-histogram" aria-hidden="true"></i> Analytics</a>
+      </nav>
+      <div class="nav-label" style="margin-top:10px">Akun</div>
+      <nav class="nav-menu">
+        <a href="profile.html" class="nav-link"><i class="ti ti-user-circle" aria-hidden="true"></i> Edit Profil</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="side-user" style="cursor:pointer" onclick="window.location.href='profile.html'">
+          <div class="av av-md av-white" id="side-avatar">AD</div>
+          <div>
+            <div class="side-user-name" id="side-name">Administrator</div>
+            <div class="side-user-role" id="side-role">Admin</div>
+          </div>
+          <a href="#" onclick="event.stopPropagation();logout();return false;" style="margin-left:auto;color:rgba(255,255,255,.7)"><i class="ti ti-logout" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="head">
+        <div class="flex-1">
+          <div class="head-title">Kartu Fitur Beranda</div>
+          <div class="head-sub">Kartu "Fitur Unggulan" yang tampil di halaman Beranda mahasiswa</div>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateModal()"><i class="ti ti-plus" aria-hidden="true"></i> Tambah Kartu</button>
+        <button class="icon-btn nav-toggle-btn"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+      </div>
+
+      <div class="body">
+        <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <div class="card card-flat mb-18" style="background:var(--blue-soft);border-color:var(--blue-mid);padding:15px">
+          <div class="flex gap-8">
+            <i class="ti ti-bulb text-blue" style="font-size:20px;flex-shrink:0" aria-hidden="true"></i>
+            <div class="fs-12 text-soft" style="line-height:1.6">Atur judul, deskripsi, tautan, dan tampilan tiap kartu. Pilih <strong>warna ikon</strong> untuk tampilan polos, atau unggah <strong>foto</strong> untuk kartu bergambar - foto akan menggantikan ikon+warna. Urutan kecil tampil duluan.</div>
+          </div>
+        </div>
+
+        <div class="grid grid-3" id="cards-grid">
+          <div class="fs-13 text-mut">Memuat kartu...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal: Add/Edit Feature Card -->
+<div class="modal-bg" id="m-card">
+  <div class="modal" style="width:100%;max-width:520px">
+    <div class="modal-head">
+      <div class="modal-title" id="card-modal-title">Tambah Kartu</div>
+      <button class="rpanel-close" onclick="closeCardModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+
+    <p id="card-modal-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+    <div class="field"><label class="field-label">Judul</label><input class="input" id="card-title" placeholder="cth: Medina AI" /></div>
+    <div class="field"><label class="field-label">Deskripsi</label><textarea class="textarea" id="card-description" rows="2" placeholder="Teks singkat penjelas kartu..."></textarea></div>
+    <div class="field"><label class="field-label">Tautan (link tujuan)</label><input class="input" id="card-linkUrl" placeholder="cth: chat.html" /></div>
+    <div class="field"><label class="field-label">Label Tombol</label><input class="input" id="card-linkLabel" placeholder="cth: Mulai chat" /></div>
+
+    <div class="field">
+      <label class="field-label">Tampilan Kartu</label>
+      <div class="flex gap-8 mb-10">
+        <button type="button" class="btn btn-soft btn-sm flex-1" id="tab-color-btn" onclick="setCardMode('color')">Ikon + Warna</button>
+        <button type="button" class="btn btn-ghost btn-sm flex-1" id="tab-photo-btn" onclick="setCardMode('photo')">Foto</button>
+      </div>
+    </div>
+
+    <div id="mode-color-fields">
+      <div class="field">
+        <label class="field-label">Ikon (nama kelas Tabler Icons)</label>
+        <input class="input" id="card-icon" placeholder="cth: ti-robot" />
+        <div class="fs-11 text-mut mt-6">Cari nama ikon di <a href="https://tabler.io/icons" target="_blank" rel="noopener" class="link">tabler.io/icons</a>, tulis dengan awalan "ti-"</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Warna</label>
+        <div class="flex gap-8" id="color-picker" style="flex-wrap:wrap">
+          <div class="color-swatch sb-blue" data-color="blue" onclick="pickColor('blue')"><i class="ti ti-robot" aria-hidden="true"></i></div>
+          <div class="color-swatch sb-amber" data-color="amber" onclick="pickColor('amber')"><i class="ti ti-robot" aria-hidden="true"></i></div>
+          <div class="color-swatch sb-green" data-color="green" onclick="pickColor('green')"><i class="ti ti-robot" aria-hidden="true"></i></div>
+          <div class="color-swatch sb-purple" data-color="purple" onclick="pickColor('purple')"><i class="ti ti-robot" aria-hidden="true"></i></div>
+          <div class="color-swatch sb-red" data-color="red" onclick="pickColor('red')"><i class="ti ti-robot" aria-hidden="true"></i></div>
+          <div class="color-swatch sb-gray" data-color="gray" onclick="pickColor('gray')"><i class="ti ti-robot" aria-hidden="true"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mode-photo-fields" style="display:none">
+      <div class="field">
+        <label class="field-label">Foto Kartu</label>
+        <div id="card-drop-zone" style="aspect-ratio:16/10;border:2.5px dashed var(--blue-mid);border-radius:16px;background:var(--blue-softer) center/cover no-repeat;cursor:pointer;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center" onclick="document.getElementById('card-file').click()">
+          <div id="card-drop-placeholder" style="text-align:center;padding:20px">
+            <div class="empty-ic" style="width:48px;height:48px;font-size:22px;margin:0 auto 8px"><i class="ti ti-photo-plus" aria-hidden="true"></i></div>
+            <div class="fw-700 fs-13">Klik atau drag &amp; drop foto</div>
+            <div class="fs-12 text-mut mt-6">JPG/PNG · Maks. 5MB</div>
+          </div>
+          <input type="file" id="card-file" accept="image/*" style="display:none" onchange="onCardFilePicked()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Urutan Tampil</label>
+      <input class="input" id="card-order" type="number" value="0" style="width:120px" />
+    </div>
+    <label class="flex items-center gap-10 mb-18" style="cursor:pointer">
+      <input type="checkbox" id="card-active" checked style="accent-color:var(--blue)" />
+      <span class="fs-13 fw-700">Aktif (tampil di Beranda)</span>
+    </label>
+
+    <div class="flex gap-10">
+      <button class="btn btn-ghost flex-1" onclick="closeCardModal()">Batal</button>
+      <button class="btn btn-primary flex-1" id="card-submit-btn" onclick="submitCard()"><i class="ti ti-check" aria-hidden="true"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .color-swatch {
+    width: 44px; height: 44px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform .12s, border-color .12s;
+  }
+  .color-swatch:hover { transform: translateY(-2px); }
+  .color-swatch.picked { border-color: var(--ink); }
+</style>
+
+<script>
+const currentAdmin = requireAuth('admin');
+if (currentAdmin) {
+  const initials = (currentAdmin.fullName || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || 'AD';
+  document.getElementById('side-avatar').textContent = initials;
+  document.getElementById('side-name').textContent = currentAdmin.fullName || 'Administrator';
+  document.getElementById('side-role').textContent = 'Admin';
+}
+
+let allCards = [];
+let editingCardId = null;
+let pickedImageDataUrl = null;
+let cardMode = 'color';
+let pickedColor = 'blue';
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+async function loadCards() {
+  const errorEl = document.getElementById('page-error');
+  const grid = document.getElementById('cards-grid');
+  errorEl.style.display = 'none';
+  try {
+    const { cards } = await apiFetch('/feature-cards');
+    allCards = cards;
+    renderCards();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+    grid.innerHTML = '';
+  }
+}
+
+function renderCards() {
+  const grid = document.getElementById('cards-grid');
+  if (!allCards.length) {
+    grid.innerHTML = '<div class="fs-13 text-mut">Belum ada kartu fitur.</div>';
+    return;
+  }
+  grid.innerHTML = allCards.map(c => {
+    const hasPhoto = !!c.imageBase64;
+    return `
+    <div class="room" style="cursor:default;padding:0;overflow:hidden">
+      <div style="aspect-ratio:16/10;background:${hasPhoto ? `var(--bg) url('${c.imageBase64}') center/cover no-repeat` : 'var(--bg)'};position:relative;display:flex;align-items:center;justify-content:center">
+        ${hasPhoto ? '' : `<div class="row-ic sb-${c.color}" style="width:52px;height:52px;font-size:24px"><i class="ti ${c.icon}" aria-hidden="true"></i></div>`}
+        <span class="chip ${c.isActive ? 'chip-green' : 'chip-gray'}" style="position:absolute;top:10px;right:10px">${c.isActive ? 'Aktif' : 'Nonaktif'}</span>
+        <span class="chip chip-blue" style="position:absolute;top:10px;left:10px">#${c.order}</span>
+      </div>
+      <div style="padding:16px">
+        <div class="room-name" style="margin-bottom:4px"></div>
+        <div class="fs-12 text-mut mb-14" style="min-height:16px"></div>
+        <div class="flex gap-6">
+          <button class="btn btn-ghost btn-sm flex-1" onclick="openEditModal('${c._id}')"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+          <button class="icon-btn" style="width:36px;height:36px;color:var(--red)" title="Hapus" onclick="deleteCard('${c._id}', '${escapeHtml(c.title)}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        </div>
+      </div>
+    </div>
+  `;
+  }).join('');
+  grid.querySelectorAll('.room-name').forEach((el, i) => { el.textContent = allCards[i].title; });
+  grid.querySelectorAll('.fs-12.text-mut.mb-14').forEach((el, i) => { el.textContent = allCards[i].description || ''; });
+}
+
+function setCardMode(mode) {
+  cardMode = mode;
+  document.getElementById('mode-color-fields').style.display = mode === 'color' ? 'block' : 'none';
+  document.getElementById('mode-photo-fields').style.display = mode === 'photo' ? 'block' : 'none';
+  document.getElementById('tab-color-btn').className = mode === 'color' ? 'btn btn-soft btn-sm flex-1' : 'btn btn-ghost btn-sm flex-1';
+  document.getElementById('tab-photo-btn').className = mode === 'photo' ? 'btn btn-soft btn-sm flex-1' : 'btn btn-ghost btn-sm flex-1';
+}
+
+function pickColor(color) {
+  pickedColor = color;
+  document.querySelectorAll('.color-swatch').forEach(el => el.classList.toggle('picked', el.dataset.color === color));
+}
+
+function resetCardForm() {
+  document.getElementById('card-title').value = '';
+  document.getElementById('card-description').value = '';
+  document.getElementById('card-linkUrl').value = '';
+  document.getElementById('card-linkLabel').value = '';
+  document.getElementById('card-icon').value = '';
+  document.getElementById('card-order').value = '0';
+  document.getElementById('card-active').checked = true;
+  document.getElementById('card-file').value = '';
+  document.getElementById('card-drop-zone').style.backgroundImage = '';
+  document.getElementById('card-drop-placeholder').style.display = 'block';
+  document.getElementById('card-modal-error').style.display = 'none';
+  pickedImageDataUrl = null;
+  pickedColor = 'blue';
+  pickColor('blue');
+  setCardMode('color');
+}
+
+function openCreateModal() {
+  editingCardId = null;
+  resetCardForm();
+  document.getElementById('card-modal-title').textContent = 'Tambah Kartu';
+  document.getElementById('card-submit-btn').innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Simpan';
+  document.getElementById('m-card').classList.add('show');
+}
+
+function openEditModal(id) {
+  const card = allCards.find(c => c._id === id);
+  if (!card) return;
+  editingCardId = id;
+  resetCardForm();
+  document.getElementById('card-modal-title').textContent = 'Edit Kartu';
+  document.getElementById('card-submit-btn').innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Simpan Perubahan';
+  document.getElementById('card-title').value = card.title;
+  document.getElementById('card-description').value = card.description || '';
+  document.getElementById('card-linkUrl').value = card.linkUrl;
+  document.getElementById('card-linkLabel').value = card.linkLabel || '';
+  document.getElementById('card-icon').value = card.icon || '';
+  document.getElementById('card-order').value = card.order || 0;
+  document.getElementById('card-active').checked = card.isActive;
+  pickColor(card.color || 'blue');
+
+  if (card.imageBase64) {
+    pickedImageDataUrl = card.imageBase64;
+    document.getElementById('card-drop-zone').style.backgroundImage = `url('${card.imageBase64}')`;
+    document.getElementById('card-drop-placeholder').style.display = 'none';
+    setCardMode('photo');
+  } else {
+    setCardMode('color');
+  }
+  document.getElementById('m-card').classList.add('show');
+}
+
+function closeCardModal() {
+  document.getElementById('m-card').classList.remove('show');
+}
+
+function processImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 1200;
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function onCardFilePicked() {
+  const file = document.getElementById('card-file').files[0];
+  if (!file) return;
+  const errorEl = document.getElementById('card-modal-error');
+  errorEl.style.display = 'none';
+
+  if (file.size > 5 * 1024 * 1024) {
+    errorEl.textContent = 'Ukuran file terlalu besar (maks. 5MB)';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    pickedImageDataUrl = await processImageFile(file);
+    document.getElementById('card-drop-zone').style.backgroundImage = `url('${pickedImageDataUrl}')`;
+    document.getElementById('card-drop-placeholder').style.display = 'none';
+  } catch (err) {
+    errorEl.textContent = 'Gagal memproses gambar';
+    errorEl.style.display = 'block';
+  }
+}
+
+const dropZone = document.getElementById('card-drop-zone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--blue)'; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--blue-mid)'; });
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = 'var(--blue-mid)';
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    document.getElementById('card-file').files = e.dataTransfer.files;
+    onCardFilePicked();
+  }
+});
+
+async function submitCard() {
+  const errorEl = document.getElementById('card-modal-error');
+  errorEl.style.display = 'none';
+
+  const title = document.getElementById('card-title').value.trim();
+  const description = document.getElementById('card-description').value.trim();
+  const linkUrl = document.getElementById('card-linkUrl').value.trim();
+  const linkLabel = document.getElementById('card-linkLabel').value.trim();
+  const icon = document.getElementById('card-icon').value.trim() || 'ti-bolt';
+  const order = Number(document.getElementById('card-order').value) || 0;
+  const isActive = document.getElementById('card-active').checked;
+
+  if (!title || !linkUrl) {
+    errorEl.textContent = 'Judul dan tautan wajib diisi';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const body = { title, description, linkUrl, linkLabel, icon, color: pickedColor, order, isActive };
+  // Photo mode overrides icon+color visually; clear stored image when switching back to color mode.
+  body.imageBase64 = cardMode === 'photo' ? (pickedImageDataUrl || '') : '';
+
+  if (cardMode === 'photo' && !pickedImageDataUrl && !editingCardId) {
+    errorEl.textContent = 'Unggah foto, atau pindah ke tab "Ikon + Warna"';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('card-submit-btn');
+  btn.disabled = true;
+  try {
+    if (editingCardId) {
+      await apiFetch(`/feature-cards/${editingCardId}`, { method: 'PATCH', body: JSON.stringify(body) });
+    } else {
+      await apiFetch('/feature-cards', { method: 'POST', body: JSON.stringify(body) });
+    }
+    closeCardModal();
+    loadCards();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteCard(id, title) {
+  if (!(await confirmDialog(`Hapus kartu "${title}"?`, { title: 'Hapus Kartu', confirmLabel: 'Ya, Hapus' }))) return;
+  try {
+    await apiFetch(`/feature-cards/${id}`, { method: 'DELETE' });
+    loadCards();
+  } catch (err) {
+    toastError(err.message);
+  }
+}
+
+loadCards();
+</script>
+
+</body>
+</html>

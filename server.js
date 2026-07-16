@@ -17,6 +17,7 @@ const caseRoutes = require('./src/routes/cases');
 const adminRoutes = require('./src/routes/admin');
 const bannerRoutes = require('./src/routes/banners');
 const wellnessRoutes = require('./src/routes/wellness');
+const featureCardRoutes = require('./src/routes/featureCards');
 
 const app = express();
 const server = http.createServer(app);
@@ -37,6 +38,7 @@ app.use('/api/cases', caseRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/banners', bannerRoutes);
 app.use('/api/wellness', wellnessRoutes);
+app.use('/api/feature-cards', featureCardRoutes);
 
 // Public marketing page at the root; the login form itself stays at
 // /index.html (linked from the landing page's "Masuk" button).

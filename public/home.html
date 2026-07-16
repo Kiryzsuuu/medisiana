@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Medisiana - Beranda</title>
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js?v=2"></script>
   <style>
@@ -39,6 +39,28 @@
     }
     .feature-title { font-size: 15px; font-weight: 700; color: var(--ink); }
     .feature-desc { font-size: 12.5px; color: var(--ink-mut); line-height: 1.6; }
+
+    /* Admin-configurable photo variant (Kelola Kartu Fitur) - photo fills
+       the card as a background with a dark gradient wash so title/desc/CTA
+       stay readable in white on top of any image. */
+    .feature-card.has-photo {
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+      min-height: 180px;
+      justify-content: flex-end;
+      position: relative;
+    }
+    .feature-card.has-photo::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(20,30,55,.05), rgba(15,22,42,.75));
+      border-radius: inherit;
+    }
+    .feature-card.has-photo > * { position: relative; z-index: 1; }
+    .feature-card.has-photo .feature-title { color: #fff; }
+    .feature-card.has-photo .feature-desc { color: rgba(255,255,255,.85); }
+    .feature-card.has-photo .feature-arrow { color: #fff; }
     .feature-arrow {
       margin-top: auto;
       display: inline-flex;
@@ -130,62 +152,8 @@
 
         <!-- Fitur Unggulan -->
         <div class="section-label"><i class="ti ti-bolt"></i> Fitur Unggulan</div>
-        <div class="feature-grid">
-
-          <a href="chat.html" class="feature-card">
-            <div class="feature-ic sb-blue"><i class="ti ti-robot" aria-hidden="true"></i></div>
-            <div>
-              <div class="feature-title">Medina AI</div>
-              <div class="feature-desc">Tutor AI Socratis yang mendorongmu berpikir sebelum memberi jawaban dari buku terverifikasi.</div>
-            </div>
-            <div class="feature-arrow">Mulai chat</div>
-          </a>
-
-          <a href="quiz.html" class="feature-card">
-            <div class="feature-ic sb-amber"><i class="ti ti-pencil" aria-hidden="true"></i></div>
-            <div>
-              <div class="feature-title">Latihan Soal</div>
-              <div class="feature-desc">Uji pemahamanmu dengan soal-soal klinis berbasis materi yang sudah kamu pelajari.</div>
-            </div>
-            <div class="feature-arrow">Mulai latihan</div>
-          </a>
-
-          <a href="rooms.html" class="feature-card">
-            <div class="feature-ic sb-green"><i class="ti ti-users-group" aria-hidden="true"></i></div>
-            <div>
-              <div class="feature-title">Study Room</div>
-              <div class="feature-desc">Belajar bareng teman satu angkatan secara real-time dalam ruang diskusi kolaboratif.</div>
-            </div>
-            <div class="feature-arrow">Lihat room</div>
-          </a>
-
-          <a href="cases.html" class="feature-card">
-            <div class="feature-ic sb-purple"><i class="ti ti-stethoscope" aria-hidden="true"></i></div>
-            <div>
-              <div class="feature-title">Diskusi Kasus</div>
-              <div class="feature-desc">Posting dan diskusikan kasus klinis menarik bersama sesama mahasiswa FK.</div>
-            </div>
-            <div class="feature-arrow">Lihat kasus</div>
-          </a>
-
-          <a href="wellness.html" class="feature-card">
-            <div class="feature-ic sb-red"><i class="ti ti-heartbeat" aria-hidden="true"></i></div>
-            <div>
-              <div class="feature-title">Kesehatan Diri</div>
-              <div class="feature-desc">Pantau kondisi fisik dan mentalmu agar tetap prima selama masa studi kedokteran.</div>
-            </div>
-            <div class="feature-arrow">Cek kondisi</div>
-          </a>
-
-          <a href="dashboard.html" class="feature-card">
-            <div class="feature-ic" style="background:#EEF3FA;color:var(--ink-soft)"><i class="ti ti-layout-grid" aria-hidden="true"></i></div>
-            <div>
-              <div class="feature-title">Dashboard</div>
-              <div class="feature-desc">Lihat statistik belajarmu, aktivitas terakhir, dan buku referensi yang tersedia.</div>
-            </div>
-            <div class="feature-arrow">Lihat statistik</div>
-          </a>
-
+        <div class="feature-grid" id="feature-grid">
+          <div class="text-mut fs-13">Memuat...</div>
         </div>
 
       </div>
@@ -319,6 +287,37 @@ async function loadHero() {
   }
 }
 
+async function loadFeatureCards() {
+  const grid = document.getElementById('feature-grid');
+  try {
+    const { cards } = await apiFetch('/feature-cards');
+    const active = cards.filter(c => c.isActive);
+    if (!active.length) { grid.innerHTML = ''; return; }
+
+    grid.innerHTML = active.map(c => {
+      const hasPhoto = !!c.imageBase64;
+      const style = hasPhoto ? `style="background-image:url('${c.imageBase64}')"` : '';
+      const iconBlock = hasPhoto ? '' : `<div class="feature-ic sb-${c.color}"><i class="ti ${c.icon}" aria-hidden="true"></i></div>`;
+      return `
+        <a href="${escapeHtml(c.linkUrl)}" class="feature-card${hasPhoto ? ' has-photo' : ''}" ${style}>
+          ${iconBlock}
+          <div>
+            <div class="feature-title"></div>
+            <div class="feature-desc"></div>
+          </div>
+          <div class="feature-arrow"></div>
+        </a>
+      `;
+    }).join('');
+    grid.querySelectorAll('.feature-title').forEach((el, i) => { el.textContent = active[i].title; });
+    grid.querySelectorAll('.feature-desc').forEach((el, i) => { el.textContent = active[i].description || ''; });
+    grid.querySelectorAll('.feature-arrow').forEach((el, i) => { el.textContent = active[i].linkLabel || 'Buka'; });
+  } catch (err) {
+    grid.innerHTML = '<div class="text-mut fs-13">Gagal memuat fitur.</div>';
+  }
+}
+
+loadFeatureCards();
 loadHero();
 </script>
 

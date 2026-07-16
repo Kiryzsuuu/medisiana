@@ -453,6 +453,38 @@ img { display: block; max-width: 100%; }
 .card-title { font-size: 15px; font-weight: 700; color: var(--ink); }
 .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 
+/* ══════════════════════════════════════════
+   WELLNESS MONITORING SUMMARY
+   ══════════════════════════════════════════ */
+.wellness-summary { display: flex; align-items: center; gap: 32px; }
+.wellness-score-ring { flex-shrink: 0; }
+.wellness-ring {
+  width: 118px; height: 118px;
+  border-radius: 50%;
+  background: conic-gradient(var(--green) calc(var(--pct, 0) * 1%), var(--bg) 0);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 1s ease;
+}
+.wellness-ring-inner {
+  width: 92px; height: 92px;
+  border-radius: 50%;
+  background: var(--white);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.wellness-ring-num { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: -.5px; }
+.wellness-ring-lbl { font-size: 10px; color: var(--ink-mut); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+
+.wellness-metrics { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.wellness-metric-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.wellness-bar { height: 8px; border-radius: 6px; background: var(--bg); overflow: hidden; }
+.wellness-bar-fill { height: 100%; border-radius: 6px; width: 0%; transition: width .8s ease; }
+
+@media (max-width: 640px) {
+  .wellness-summary { flex-direction: column; gap: 20px; }
+  .wellness-metrics { width: 100%; }
+}
+
 /* stat card */
 .stat {
   background: var(--white);
@@ -481,6 +513,7 @@ img { display: block; max-width: 100%; }
 .sb-amber  { background: #FEF2DC; color: var(--amber); }
 .sb-red    { background: #FEE7ED; color: var(--red); }
 .sb-purple { background: #EEEBFE; color: var(--purple); }
+.sb-gray   { background: #EEF3FA; color: var(--ink-soft); }
 
 /* ══════════════════════════════════════════
    GRID HELPERS

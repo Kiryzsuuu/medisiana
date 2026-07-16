@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Medisiana - Kesehatan Diri</title>
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <script src="api.js?v=2"></script>
 </head>
@@ -48,6 +48,48 @@
 
       <div class="body">
         <p id="page-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
+
+        <!-- Monitoring summary -->
+        <div class="card mb-22">
+          <div class="card-head">
+            <div class="card-title">Ringkasan 7 Hari Terakhir</div>
+            <span class="fs-11 text-mut" id="summary-range"></span>
+          </div>
+          <div class="wellness-summary">
+            <div class="wellness-score-ring">
+              <div class="wellness-ring" id="wellness-ring">
+                <div class="wellness-ring-inner">
+                  <div class="wellness-ring-num" id="wellness-score">-</div>
+                  <div class="wellness-ring-lbl">Skor</div>
+                </div>
+              </div>
+              <div class="fs-12 fw-700 text-soft mt-10" style="text-align:center">Kesejahteraan</div>
+            </div>
+            <div class="wellness-metrics">
+              <div class="wellness-metric">
+                <div class="wellness-metric-top">
+                  <span class="fs-12 fw-700 text-soft">Rata-rata Tidur</span>
+                  <span class="fs-12 fw-800" id="metric-sleep-val">-</span>
+                </div>
+                <div class="wellness-bar"><div class="wellness-bar-fill" id="metric-sleep-bar" style="background:var(--green)"></div></div>
+              </div>
+              <div class="wellness-metric">
+                <div class="wellness-metric-top">
+                  <span class="fs-12 fw-700 text-soft">Rata-rata Stres</span>
+                  <span class="fs-12 fw-800" id="metric-stress-val">-</span>
+                </div>
+                <div class="wellness-bar"><div class="wellness-bar-fill" id="metric-stress-bar" style="background:var(--red)"></div></div>
+              </div>
+              <div class="wellness-metric">
+                <div class="wellness-metric-top">
+                  <span class="fs-12 fw-700 text-soft">Konsistensi Check-in</span>
+                  <span class="fs-12 fw-800" id="metric-consistency-val">-</span>
+                </div>
+                <div class="wellness-bar"><div class="wellness-bar-fill" id="metric-consistency-bar" style="background:var(--blue)"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Check-in card -->
         <div class="card mb-22">
@@ -185,10 +227,50 @@ async function loadTodayAndTrend() {
     }
 
     renderTrend(logs);
+    renderSummary(logs);
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.style.display = 'block';
   }
+}
+
+// Derived, transparent metrics from the raw check-in numbers - not a
+// medical score, just a simple composite of sleep/stress/consistency to
+// give a quick at-a-glance sense of the week. Formula is intentionally
+// simple and disclosed nowhere as clinical.
+function renderSummary(logs) {
+  const today = new Date();
+  const since = new Date(today);
+  since.setDate(since.getDate() - 6);
+  const fmt = (d) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+  document.getElementById('summary-range').textContent = `${fmt(since)} - ${fmt(today)}`;
+
+  const sleepVals = logs.map(l => l.sleepHours).filter(v => v != null);
+  const stressVals = logs.map(l => l.stressLevel).filter(v => v != null);
+  const avgSleep = sleepVals.length ? sleepVals.reduce((a, b) => a + b, 0) / sleepVals.length : null;
+  const avgStress = stressVals.length ? stressVals.reduce((a, b) => a + b, 0) / stressVals.length : null;
+  const daysLogged = logs.length;
+
+  const clamp = (n) => Math.max(0, Math.min(100, n));
+  const sleepScore = avgSleep != null ? clamp(100 - Math.abs(avgSleep - 7.5) * 15) : 50;
+  const stressScore = avgStress != null ? clamp((5 - avgStress) / 4 * 100) : 50;
+  const consistencyScore = clamp((daysLogged / 7) * 100);
+  const wellnessScore = Math.round((sleepScore + stressScore + consistencyScore) / 3);
+
+  const ringColor = wellnessScore >= 70 ? 'var(--green)' : wellnessScore >= 40 ? 'var(--amber)' : 'var(--red)';
+  const ring = document.getElementById('wellness-ring');
+  ring.style.setProperty('--pct', wellnessScore);
+  ring.style.background = `conic-gradient(${ringColor} calc(var(--pct, 0) * 1%), var(--bg) 0)`;
+  document.getElementById('wellness-score').textContent = `${wellnessScore}%`;
+
+  document.getElementById('metric-sleep-val').textContent = avgSleep != null ? `${avgSleep.toFixed(1)} jam` : '-';
+  document.getElementById('metric-sleep-bar').style.width = avgSleep != null ? `${clamp((avgSleep / 9) * 100)}%` : '0%';
+
+  document.getElementById('metric-stress-val').textContent = avgStress != null ? `${avgStress.toFixed(1)}/5` : '-';
+  document.getElementById('metric-stress-bar').style.width = avgStress != null ? `${clamp((avgStress / 5) * 100)}%` : '0%';
+
+  document.getElementById('metric-consistency-val').textContent = `${daysLogged}/7 hari`;
+  document.getElementById('metric-consistency-bar').style.width = `${consistencyScore}%`;
 }
 
 function renderTrend(logs) {
