@@ -306,19 +306,13 @@ async function loadBanners() {
   }
 }
 
-function renderBanners() {
-  const grid = document.getElementById('banners-grid');
-  if (!allBanners.length) {
-    grid.innerHTML = '<div class="fs-13 text-mut">Belum ada banner. Tambah banner pertama untuk tampil di Dashboard mahasiswa!</div>';
-    return;
-  }
-  grid.innerHTML = allBanners.map(b => `
+function bannerCardHtml(b) {
+  return `
     <div class="room" style="cursor:default;padding:0;overflow:hidden">
       <div style="aspect-ratio:${b.placement === 'login' ? '4/5' : '16/9'};background:var(--bg);position:relative">
         <img src="${b.imageBase64}" style="width:100%;height:100%;object-fit:cover;object-position:${b.focalX ?? 50}% ${b.focalY ?? 50}%;display:block" />
         <span class="chip ${b.isActive ? 'chip-green' : 'chip-gray'}" style="position:absolute;top:10px;right:10px">${b.isActive ? 'Aktif' : 'Nonaktif'}</span>
         <span class="chip chip-blue" style="position:absolute;top:10px;left:10px">#${b.order}</span>
-        <span class="chip chip-amber" style="position:absolute;bottom:10px;left:10px">${b.placement === 'login' ? 'Halaman Login' : 'Dashboard Hero'}</span>
       </div>
       <div style="padding:16px">
         <div class="room-name" style="margin-bottom:4px"></div>
@@ -329,9 +323,46 @@ function renderBanners() {
         </div>
       </div>
     </div>
-  `).join('');
-  grid.querySelectorAll('.room-name').forEach((el, i) => { el.textContent = allBanners[i].title; });
-  grid.querySelectorAll('.fs-12.text-mut.mb-14').forEach((el, i) => { el.textContent = allBanners[i].description || ''; });
+  `;
+}
+
+function renderBannerSection(container, icon, label, hint, banners) {
+  const section = document.createElement('div');
+  section.className = 'mb-22';
+  section.innerHTML = `
+    <div class="flex items-center gap-8 mb-14">
+      <i class="ti ${icon} text-blue" style="font-size:17px" aria-hidden="true"></i>
+      <div class="fw-800 fs-14">${label}</div>
+      <span class="fs-12 text-mut">- ${hint}</span>
+    </div>
+    <div class="grid grid-3"></div>
+  `;
+  const grid = section.querySelector('.grid');
+  if (!banners.length) {
+    grid.innerHTML = '<div class="fs-13 text-mut">Belum ada banner di kategori ini.</div>';
+  } else {
+    grid.innerHTML = banners.map(bannerCardHtml).join('');
+    grid.querySelectorAll('.room-name').forEach((el, i) => { el.textContent = banners[i].title; });
+    grid.querySelectorAll('.fs-12.text-mut.mb-14').forEach((el, i) => { el.textContent = banners[i].description || ''; });
+  }
+  container.appendChild(section);
+}
+
+function renderBanners() {
+  const container = document.getElementById('banners-grid');
+  container.innerHTML = '';
+  container.className = '';
+
+  if (!allBanners.length) {
+    container.innerHTML = '<div class="fs-13 text-mut">Belum ada banner. Tambah banner pertama untuk tampil di Dashboard mahasiswa!</div>';
+    return;
+  }
+
+  const dashboardBanners = allBanners.filter(b => b.placement !== 'login');
+  const loginBanners = allBanners.filter(b => b.placement === 'login');
+
+  renderBannerSection(container, 'ti-layout-grid', 'Dashboard Hero', 'carousel 16:9, tampil ke mahasiswa setelah login', dashboardBanners);
+  renderBannerSection(container, 'ti-lock', 'Halaman Login', 'foto potret, tampil sebelum login', loginBanners);
 }
 
 function resetBannerForm() {
