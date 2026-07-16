@@ -1355,8 +1355,30 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 @media (max-width: 640px) {
   .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
   .modal { width: 100%; padding: 20px; }
-  .stat, .card { padding: 16px; }
+  .card { padding: 16px; }
   .bubble-row { max-width: 96%; }
+
+  /* Stat cards stack to 1-per-row on mobile (see .grid-3 rule above), which
+     made the old top-icon/big-gap/number layout tall enough that 3-4 cards
+     alone filled the screen. Icon-left + number/label-right cuts each
+     card's height roughly in half so the page needs far less scrolling. */
+  .stat {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 14px;
+    align-items: center;
+    padding: 14px 16px;
+  }
+  .stat-ic {
+    grid-row: 1 / -1;
+    width: 44px; height: 44px;
+    font-size: 20px;
+    margin-bottom: 0;
+  }
+  .stat-num { grid-column: 2; font-size: 22px; }
+  .stat-lbl, .stat-chg { grid-column: 2; }
+  .stat-lbl { margin-top: 0; }
+  .grid { gap: 10px; }
   .composer { padding: 14px 16px 18px; }
   .room-emoji { width: 44px; height: 44px; font-size: 22px; }
   .head-title { font-size: 16px; }
