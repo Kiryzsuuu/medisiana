@@ -213,7 +213,14 @@ function confirmDialog(message, { title = 'Konfirmasi', confirmLabel = 'Ya, Lanj
    present in the page's .head (see styles.css for the off-canvas rules)
    to open/close the .sidebar drawer, with a dimmed backdrop behind it. */
 function initMobileNav() {
-  const sidebar = document.querySelector('.sidebar');
+  // Some pages (e.g. profile.html) render two .sidebar elements - one per
+  // role - and hide the inactive one via inline display:none. Pick whichever
+  // is actually visible, not just the first one in DOM order, otherwise the
+  // hamburger button ends up toggling a sidebar nobody can see.
+  const sidebars = document.querySelectorAll('.sidebar');
+  let sidebar = null;
+  sidebars.forEach((el) => { if (!sidebar && getComputedStyle(el).display !== 'none') sidebar = el; });
+  if (!sidebar) sidebar = sidebars[0];
   if (!sidebar) return;
 
   const overlay = document.createElement('div');

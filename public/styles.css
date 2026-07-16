@@ -58,6 +58,11 @@ body {
   color: var(--ink);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* Safety net: nothing in this app should ever need page-wide horizontal
+     scroll (tables get their own .tbl-card overflow-x:auto wrapper) - this
+     catches any stray fixed-width element instead of letting it widen the
+     whole page on mobile. */
+  overflow-x: hidden;
 }
 
 a { text-decoration: none; color: inherit; }
@@ -251,6 +256,20 @@ img { display: block; max-width: 100%; }
 }
 .head-search input { border: none; background: none; outline: none; flex: 1; font-size: 13px; color: var(--ink); }
 .head-search i { color: var(--ink-mut); font-size: 17px; }
+
+/* Same look as .head-search, but for filter bars above tables/lists - kept
+   separate so it's never swept up by the "hide search on mobile" rule that
+   only applies to the topbar search (see @media (max-width:900px) below). */
+.filter-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 10px 15px;
+}
+.filter-search input { border: none; background: none; outline: none; flex: 1; font-size: 13px; color: var(--ink); min-width: 0; }
+.filter-search i { color: var(--ink-mut); font-size: 17px; flex-shrink: 0; }
 
 .icon-btn {
   width: 40px; height: 40px;
@@ -1177,7 +1196,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 
 .mt-6{margin-top:6px}.mt-10{margin-top:10px}.mt-14{margin-top:14px}.mt-18{margin-top:18px}.mt-22{margin-top:22px}
 .mb-6{margin-bottom:6px}.mb-10{margin-bottom:10px}.mb-14{margin-bottom:14px}.mb-18{margin-bottom:18px}.mb-22{margin-bottom:22px}
-.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.flex-1{flex:1}
+.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.flex-1{flex:1;min-width:0}
 .gap-6{gap:6px}.gap-8{gap:8px}.gap-10{gap:10px}.gap-14{gap:14px}
 .ml-auto{margin-left:auto}
 .text-mut{color:var(--ink-mut)}.text-soft{color:var(--ink-soft)}.text-blue{color:var(--blue)}
@@ -1324,4 +1343,20 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
   .composer { padding: 14px 16px 18px; }
   .room-emoji { width: 44px; height: 44px; font-size: 22px; }
   .head-title { font-size: 16px; }
+
+  /* The title block claims the whole first row (flex-basis:100% forces a
+     wrap point right after it), so action buttons/dropdown/hamburger flow
+     together on their own row instead of squeezing onto the title's row
+     and pushing the page into horizontal scroll. */
+  .head > .flex-1 { flex-basis: 100%; }
+
+  /* Filter bars (search + selects above admin tables) stack full-width
+     instead of squeezing 2-3 fixed-width controls onto one cramped row. */
+  .filter-search,
+  .filter-search.flex-1,
+  select.select[style*="width"] { width: 100% !important; }
+
+  /* Shrink the banner crop stage so the drag target + its action row stay
+     fully visible without scrolling the modal mid-drag on short phones. */
+  #banner-crop-stage { height: 220px !important; }
 }
