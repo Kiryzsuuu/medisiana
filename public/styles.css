@@ -1,5 +1,5 @@
 /* ============================================================
-   Medisiana — Premium Stylesheet v2
+   Medisiana - Premium Stylesheet v2
    Inspired by modern medical chat UI
    Theme: Vibrant Blue + Clean White + Soft Rounded
    ============================================================ */
@@ -66,7 +66,7 @@ input, textarea, select { font-family: inherit; }
 img { display: block; max-width: 100%; }
 
 /* ══════════════════════════════════════════
-   APP FRAME — full-bleed edge-to-edge container
+   APP FRAME - full-bleed edge-to-edge container
    ══════════════════════════════════════════ */
 .page {
   min-height: 100vh;
@@ -82,7 +82,7 @@ img { display: block; max-width: 100%; }
 }
 
 /* ══════════════════════════════════════════
-   SIDEBAR — solid blue gradient
+   SIDEBAR - solid blue gradient
    ══════════════════════════════════════════ */
 .sidebar {
   width: 248px;
@@ -685,7 +685,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 .input::placeholder, .textarea::placeholder { color: var(--ink-faint); }
 
 /* ══════════════════════════════════════════
-   RIGHT PANEL — info blocks
+   RIGHT PANEL - info blocks
    ══════════════════════════════════════════ */
 .rp-block { margin-bottom: 22px; }
 .rp-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--ink-mut); text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
@@ -722,7 +722,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 .modal-title { font-size: 18px; font-weight: 800; color: var(--ink); }
 
 /* ══════════════════════════════════════════
-   LOGIN — Apple-inspired: centered, quiet, generous whitespace
+   LOGIN - Apple-inspired: centered, quiet, generous whitespace
    ══════════════════════════════════════════ */
 @keyframes alFadeUp {
   from { opacity: 0; transform: translateY(14px); }
@@ -732,24 +732,23 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 /* ── Page shell: light backdrop, one centered floating card ── */
 .lp-page {
   min-height: 100vh;
-  background: var(--bg);
+  background: var(--white);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
 }
 
 .lp-card {
   width: 100%;
-  max-width: 980px;
-  min-height: 560px;
+  min-height: 100vh;
   background: var(--white);
-  border-radius: 24px;
-  box-shadow: 0 1px 2px rgba(20,30,60,.04), 0 30px 60px rgba(20,30,60,.12);
   overflow: hidden;
   display: flex;
-  opacity: 0; transform: translateY(16px);
-  animation: alFadeUp .55s ease .05s forwards;
+  opacity: 0;
+  animation: alFadeIn .5s ease .05s forwards;
+}
+
+@keyframes alFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Photo panel - admin-configurable via Kelola Banner (placement: Login) ── */
@@ -781,19 +780,33 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
   color: #fff;
   letter-spacing: -.3px;
 }
-.lp-photo-bottom { max-width: 320px; }
+.lp-photo-bottom { max-width: 340px; }
 .lp-photo-title {
-  font-size: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.lp-photo-title-main {
+  font-size: 30px;
   font-weight: 800;
   color: #fff;
-  line-height: 1.28;
-  letter-spacing: -.4px;
-  margin-bottom: 14px;
+  line-height: 1.1;
+  letter-spacing: -.8px;
+}
+.lp-photo-title-sub {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,.92);
+  line-height: 1.4;
+  letter-spacing: -.1px;
 }
 .lp-photo-desc {
-  font-size: 12.5px;
-  color: rgba(255,255,255,.88);
-  line-height: 1.65;
+  font-size: 13px;
+  color: rgba(255,255,255,.82);
+  line-height: 1.75;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,.22);
 }
 
 /* ── Form panel ── */
@@ -935,7 +948,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 .link { color: var(--blue); font-weight: 700; cursor: pointer; }
 
 /* ══════════════════════════════════════════
-   HERO CAROUSEL — 16:9 tips/ads carousel on Dashboard
+   HERO CAROUSEL - 16:9 tips/ads carousel on Dashboard
    ══════════════════════════════════════════ */
 .hero-carousel {
   position: relative;
@@ -1172,7 +1185,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 .fs-11{font-size:11px}.fs-12{font-size:12px}.fs-13{font-size:13px}
 
 /* ══════════════════════════════════════════
-   TOAST NOTIFICATIONS (injected by api.js — replaces alert())
+   TOAST NOTIFICATIONS (injected by api.js - replaces alert())
    ══════════════════════════════════════════ */
 .toast-stack {
   position: fixed;
@@ -1248,7 +1261,7 @@ table.tbl tbody tr:hover { background: var(--blue-softer); }
 .nav-overlay.open { display: block; }
 
 /* ══════════════════════════════════════════
-   RESPONSIVE — tablet & mobile
+   RESPONSIVE - tablet & mobile
    ══════════════════════════════════════════ */
 @media (max-width: 1180px) {
   .rpanel { width: 260px; }
