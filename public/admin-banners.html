@@ -63,7 +63,7 @@
         <div class="card card-flat mb-18" style="background:var(--blue-soft);border-color:var(--blue-mid);padding:15px">
           <div class="flex gap-8">
             <i class="ti ti-bulb text-blue" style="font-size:20px;flex-shrink:0" aria-hidden="true"></i>
-            <div class="fs-12 text-soft" style="line-height:1.6">Gunakan gambar rasio <strong>16:9</strong> (mis. 1280×720px) supaya tidak terpotong aneh di carousel. Gambar otomatis dikompres di browser sebelum diunggah supaya ukurannya tetap ringan.</div>
+            <div class="fs-12 text-soft" style="line-height:1.6">Dashboard Hero dipotong ke rasio <strong>16:9</strong> (landscape), Halaman Login dipotong ke rasio <strong>potret</strong> - keduanya beda bentuk. Pratinjau di form tambah/edit otomatis menyesuaikan supaya kamu tahu persis bagian mana yang terlihat, dan bisa klik gambar untuk atur titik fokusnya.</div>
           </div>
         </div>
 
@@ -86,26 +86,34 @@
 
     <p id="banner-modal-error" style="display:none;color:var(--red);font-size:12.5px;font-weight:600;margin-bottom:14px"></p>
 
-    <div id="banner-drop-zone" style="aspect-ratio:16/9;border:2.5px dashed var(--blue-mid);border-radius:16px;background:var(--blue-softer);cursor:pointer;margin-bottom:18px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center" onclick="document.getElementById('banner-file').click()">
-      <div id="banner-drop-placeholder" style="text-align:center;padding:20px">
-        <div class="empty-ic" style="width:52px;height:52px;font-size:24px;margin:0 auto 10px"><i class="ti ti-photo-plus" aria-hidden="true"></i></div>
-        <div class="fw-700 fs-13">Klik atau drag & drop gambar</div>
-        <div class="fs-12 text-mut mt-6">Rasio 16:9 · JPG/PNG · Maks. 5MB</div>
+    <div class="field">
+      <label class="field-label">Tampilkan di</label>
+      <select class="select" id="banner-placement" onchange="updatePreviewShape()">
+        <option value="dashboard">Dashboard Hero (mahasiswa, setelah login)</option>
+        <option value="login">Halaman Login (foto dekoratif, sebelum login)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Gambar</label>
+      <div id="banner-drop-zone" style="aspect-ratio:16/9;border:2.5px dashed var(--blue-mid);border-radius:16px;background:var(--blue-softer) center/cover no-repeat;cursor:pointer;margin-bottom:8px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;transition:aspect-ratio .2s" onclick="handlePreviewClick(event)">
+        <div id="banner-drop-placeholder" style="text-align:center;padding:20px">
+          <div class="empty-ic" style="width:52px;height:52px;font-size:24px;margin:0 auto 10px"><i class="ti ti-photo-plus" aria-hidden="true"></i></div>
+          <div class="fw-700 fs-13">Klik atau drag & drop gambar</div>
+          <div class="fs-12 text-mut mt-6" id="banner-ratio-hint">Rasio landscape (16:9) · JPG/PNG · Maks. 5MB</div>
+        </div>
+        <div id="banner-focal-pin" style="display:none;position:absolute;left:50%;top:50%;width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);transform:translate(-50%,-50%);pointer-events:none"></div>
+        <input type="file" id="banner-file" accept="image/*" style="display:none" onchange="onBannerFilePicked()" />
       </div>
-      <img id="banner-preview-img" style="display:none;width:100%;height:100%;object-fit:cover" />
-      <input type="file" id="banner-file" accept="image/*" style="display:none" onchange="onBannerFilePicked()" />
+      <div class="flex items-center justify-between" id="banner-preview-actions" style="display:none">
+        <span class="fs-11 text-mut"><i class="ti ti-hand-click" aria-hidden="true"></i> Klik gambar untuk atur titik fokus (bagian yang selalu terlihat)</span>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();document.getElementById('banner-file').click()"><i class="ti ti-photo-edit" aria-hidden="true"></i> Ganti Gambar</button>
+      </div>
     </div>
 
     <div class="field"><label class="field-label">Judul</label><input class="input" id="banner-title" placeholder="cth: Tips Belajar Efektif Sebelum UAS" /></div>
     <div class="field"><label class="field-label">Deskripsi (opsional)</label><textarea class="textarea" id="banner-description" rows="2" placeholder="Teks singkat yang muncul di bawah judul..."></textarea></div>
     <div class="field"><label class="field-label">Link Tujuan (opsional)</label><input class="input" id="banner-link" placeholder="cth: https://... atau chat.html" /></div>
-    <div class="field">
-      <label class="field-label">Tampilkan di</label>
-      <select class="select" id="banner-placement">
-        <option value="dashboard">Dashboard Hero (mahasiswa, setelah login)</option>
-        <option value="login">Halaman Login (foto dekoratif, sebelum login)</option>
-      </select>
-    </div>
     <div class="field">
       <label class="field-label">Urutan Tampil</label>
       <input class="input" id="banner-order" type="number" value="0" style="width:120px" />
@@ -134,6 +142,47 @@ if (currentAdmin) {
 let allBanners = [];
 let editingBannerId = null;
 let pickedImageDataUrl = null;
+let focalX = 50;
+let focalY = 50;
+
+// Dashboard hero is a 16:9 landscape carousel; the login panel is a tall
+// portrait photo (roughly matches the left half of the login screen on
+// desktop). Keeping the preview's aspect ratio in sync with the selected
+// placement is what lets an admin see - before saving - exactly what gets
+// cropped out in each context, instead of guessing.
+const PLACEMENT_SHAPES = {
+  dashboard: { ratio: '16/9', hint: 'Rasio landscape (16:9) · JPG/PNG · Maks. 5MB' },
+  login:     { ratio: '4/5',  hint: 'Rasio potret (mendekati panel login) · JPG/PNG · Maks. 5MB' },
+};
+
+function updatePreviewShape() {
+  const placement = document.getElementById('banner-placement').value;
+  const shape = PLACEMENT_SHAPES[placement] || PLACEMENT_SHAPES.dashboard;
+  document.getElementById('banner-drop-zone').style.aspectRatio = shape.ratio;
+  document.getElementById('banner-ratio-hint').textContent = shape.hint;
+}
+
+function updateFocalPreview() {
+  const zone = document.getElementById('banner-drop-zone');
+  zone.style.backgroundPosition = `${focalX}% ${focalY}%`;
+  const pin = document.getElementById('banner-focal-pin');
+  pin.style.left = `${focalX}%`;
+  pin.style.top = `${focalY}%`;
+}
+
+function handlePreviewClick(e) {
+  if (!pickedImageDataUrl) {
+    document.getElementById('banner-file').click();
+    return;
+  }
+  const zone = document.getElementById('banner-drop-zone');
+  const rect = zone.getBoundingClientRect();
+  focalX = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+  focalY = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+  focalX = Math.max(0, Math.min(100, focalX));
+  focalY = Math.max(0, Math.min(100, focalY));
+  updateFocalPreview();
+}
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -164,8 +213,8 @@ function renderBanners() {
   }
   grid.innerHTML = allBanners.map(b => `
     <div class="room" style="cursor:default;padding:0;overflow:hidden">
-      <div style="aspect-ratio:16/9;background:var(--bg);position:relative">
-        <img src="${b.imageBase64}" style="width:100%;height:100%;object-fit:cover;display:block" />
+      <div style="aspect-ratio:${b.placement === 'login' ? '4/5' : '16/9'};background:var(--bg);position:relative">
+        <img src="${b.imageBase64}" style="width:100%;height:100%;object-fit:cover;object-position:${b.focalX ?? 50}% ${b.focalY ?? 50}%;display:block" />
         <span class="chip ${b.isActive ? 'chip-green' : 'chip-gray'}" style="position:absolute;top:10px;right:10px">${b.isActive ? 'Aktif' : 'Nonaktif'}</span>
         <span class="chip chip-blue" style="position:absolute;top:10px;left:10px">#${b.order}</span>
         <span class="chip chip-amber" style="position:absolute;bottom:10px;left:10px">${b.placement === 'login' ? 'Halaman Login' : 'Dashboard Hero'}</span>
@@ -192,10 +241,15 @@ function resetBannerForm() {
   document.getElementById('banner-order').value = '0';
   document.getElementById('banner-active').checked = true;
   document.getElementById('banner-file').value = '';
-  document.getElementById('banner-preview-img').style.display = 'none';
+  document.getElementById('banner-drop-zone').style.backgroundImage = '';
   document.getElementById('banner-drop-placeholder').style.display = 'block';
+  document.getElementById('banner-focal-pin').style.display = 'none';
+  document.getElementById('banner-preview-actions').style.display = 'none';
   document.getElementById('banner-modal-error').style.display = 'none';
   pickedImageDataUrl = null;
+  focalX = 50;
+  focalY = 50;
+  updatePreviewShape();
 }
 
 function openCreateModal() {
@@ -219,10 +273,15 @@ function openEditModal(id) {
   document.getElementById('banner-placement').value = banner.placement === 'login' ? 'login' : 'dashboard';
   document.getElementById('banner-order').value = banner.order || 0;
   document.getElementById('banner-active').checked = banner.isActive;
-  document.getElementById('banner-preview-img').src = banner.imageBase64;
-  document.getElementById('banner-preview-img').style.display = 'block';
+  updatePreviewShape();
+  document.getElementById('banner-drop-zone').style.backgroundImage = `url('${banner.imageBase64}')`;
   document.getElementById('banner-drop-placeholder').style.display = 'none';
+  document.getElementById('banner-focal-pin').style.display = 'block';
+  document.getElementById('banner-preview-actions').style.display = 'flex';
   pickedImageDataUrl = banner.imageBase64;
+  focalX = banner.focalX ?? 50;
+  focalY = banner.focalY ?? 50;
+  updateFocalPreview();
   document.getElementById('m-banner').classList.add('show');
 }
 
@@ -230,35 +289,28 @@ function closeBannerModal() {
   document.getElementById('m-banner').classList.remove('show');
 }
 
-// Resize/compress in-browser via canvas so the base64 payload stays small,
-// then letterbox-crop toward 16:9 so the stored image already matches the carousel.
+// Resize/compress in-browser via canvas, keeping the ORIGINAL aspect ratio
+// (no forced crop) - dashboard and login placements need different crop
+// shapes at display time, so cropping here would bake in the wrong one for
+// whichever placement wasn't selected. The focal point picker below is what
+// controls what gets shown/cut off per placement instead.
 function processImageFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const targetRatio = 16 / 9;
-        let sx = 0, sy = 0, sw = img.width, sh = img.height;
-        const currentRatio = sw / sh;
-        if (currentRatio > targetRatio) {
-          sw = sh * targetRatio;
-          sx = (img.width - sw) / 2;
-        } else if (currentRatio < targetRatio) {
-          sh = sw / targetRatio;
-          sy = (img.height - sh) / 2;
-        }
-
-        const maxWidth = 1280;
-        const outWidth = Math.min(maxWidth, sw);
-        const outHeight = outWidth / targetRatio;
+        const maxDim = 1600;
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const outWidth = Math.round(img.width * scale);
+        const outHeight = Math.round(img.height * scale);
 
         const canvas = document.createElement('canvas');
         canvas.width = outWidth;
         canvas.height = outHeight;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outWidth, outHeight);
-        resolve(canvas.toDataURL('image/jpeg', 0.82));
+        ctx.drawImage(img, 0, 0, outWidth, outHeight);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -282,10 +334,13 @@ async function onBannerFilePicked() {
 
   try {
     pickedImageDataUrl = await processImageFile(file);
-    const img = document.getElementById('banner-preview-img');
-    img.src = pickedImageDataUrl;
-    img.style.display = 'block';
+    document.getElementById('banner-drop-zone').style.backgroundImage = `url('${pickedImageDataUrl}')`;
     document.getElementById('banner-drop-placeholder').style.display = 'none';
+    document.getElementById('banner-focal-pin').style.display = 'block';
+    document.getElementById('banner-preview-actions').style.display = 'flex';
+    focalX = 50;
+    focalY = 50;
+    updateFocalPreview();
   } catch (err) {
     errorEl.textContent = 'Gagal memproses gambar';
     errorEl.style.display = 'block';
@@ -327,7 +382,7 @@ async function submitBanner() {
     return;
   }
 
-  const body = { title, description, linkUrl, placement, order, isActive };
+  const body = { title, description, linkUrl, placement, order, isActive, focalX, focalY };
   if (pickedImageDataUrl) body.imageBase64 = pickedImageDataUrl;
 
   const btn = document.getElementById('banner-submit-btn');

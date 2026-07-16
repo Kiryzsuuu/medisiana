@@ -80,6 +80,7 @@ async function loadLoginPhoto() {
     if (!banner || !banner.imageBase64) return;
     const photoEl = document.getElementById('lp-photo');
     photoEl.style.backgroundImage = `linear-gradient(rgba(15,25,50,.15), rgba(10,20,45,.55)), url('${banner.imageBase64}')`;
+    photoEl.style.backgroundPosition = `${banner.focalX ?? 50}% ${banner.focalY ?? 50}%`;
     photoEl.classList.add('has-photo');
   } catch (err) {
     console.error('Gagal memuat foto login:', err.message);

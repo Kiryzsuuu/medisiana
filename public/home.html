@@ -262,7 +262,7 @@ function renderHero(banners) {
 
   track.innerHTML = banners.map(b => `
     <a class="hero-slide" href="${b.linkUrl ? escapeHtml(b.linkUrl) : '#'}" ${b.linkUrl ? '' : 'onclick="return false;" style="cursor:default"'}>
-      <img src="${b.imageBase64}" alt="" />
+      <img src="${b.imageBase64}" alt="" style="object-position:${b.focalX ?? 50}% ${b.focalY ?? 50}%" />
       <div class="hero-overlay">
         <div class="hero-slide-title"></div>
         <div class="hero-slide-desc"></div>
