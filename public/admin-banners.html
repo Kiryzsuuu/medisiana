@@ -96,17 +96,18 @@
 
     <div class="field">
       <label class="field-label">Gambar</label>
-      <div id="banner-drop-zone" style="aspect-ratio:16/9;border:2.5px dashed var(--blue-mid);border-radius:16px;background:var(--blue-softer) center/cover no-repeat;cursor:pointer;margin-bottom:8px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;transition:aspect-ratio .2s" onclick="handlePreviewClick(event)">
+      <div id="banner-crop-stage" style="position:relative;height:320px;border:2.5px dashed var(--blue-mid);border-radius:16px;background:var(--blue-softer);cursor:pointer;margin-bottom:8px;overflow:hidden;display:flex;align-items:center;justify-content:center" onclick="if(!pickedImageDataUrl) document.getElementById('banner-file').click()">
         <div id="banner-drop-placeholder" style="text-align:center;padding:20px">
           <div class="empty-ic" style="width:52px;height:52px;font-size:24px;margin:0 auto 10px"><i class="ti ti-photo-plus" aria-hidden="true"></i></div>
           <div class="fw-700 fs-13">Klik atau drag & drop gambar</div>
           <div class="fs-12 text-mut mt-6" id="banner-ratio-hint">Rasio landscape (16:9) · JPG/PNG · Maks. 5MB</div>
         </div>
-        <div id="banner-focal-pin" style="display:none;position:absolute;left:50%;top:50%;width:22px;height:22px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);transform:translate(-50%,-50%);pointer-events:none"></div>
+        <img id="banner-crop-img" style="display:none;position:absolute;max-width:100%;max-height:100%;top:50%;left:50%;transform:translate(-50%,-50%);user-select:none;pointer-events:none" draggable="false" alt="" />
+        <div id="banner-crop-frame" style="display:none;position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(10,16,32,.6);cursor:move;border-radius:3px"></div>
         <input type="file" id="banner-file" accept="image/*" style="display:none" onchange="onBannerFilePicked()" />
       </div>
       <div class="flex items-center justify-between" id="banner-preview-actions" style="display:none">
-        <span class="fs-11 text-mut"><i class="ti ti-hand-click" aria-hidden="true"></i> Klik gambar untuk atur titik fokus (bagian yang selalu terlihat)</span>
+        <span class="fs-11 text-mut"><i class="ti ti-arrows-move" aria-hidden="true"></i> Geser kotak putih untuk pilih area yang tampil</span>
         <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();document.getElementById('banner-file').click()"><i class="ti ti-photo-edit" aria-hidden="true"></i> Ganti Gambar</button>
       </div>
     </div>
@@ -147,42 +148,142 @@ let focalY = 50;
 
 // Dashboard hero is a 16:9 landscape carousel; the login panel is a tall
 // portrait photo (roughly matches the left half of the login screen on
-// desktop). Keeping the preview's aspect ratio in sync with the selected
-// placement is what lets an admin see - before saving - exactly what gets
-// cropped out in each context, instead of guessing.
+// desktop). The crop frame's aspect ratio follows whichever placement is
+// selected, so the admin drags the frame over the exact shape that will
+// actually be shown - not an approximation.
 const PLACEMENT_SHAPES = {
-  dashboard: { ratio: '16/9', hint: 'Rasio landscape (16:9) · JPG/PNG · Maks. 5MB' },
-  login:     { ratio: '4/5',  hint: 'Rasio potret (mendekati panel login) · JPG/PNG · Maks. 5MB' },
+  dashboard: { ratio: 16 / 9, hint: 'Rasio landscape (16:9) · JPG/PNG · Maks. 5MB' },
+  login:     { ratio: 4 / 5,  hint: 'Rasio potret (mendekati panel login) · JPG/PNG · Maks. 5MB' },
 };
 
-function updatePreviewShape() {
+let cropDrag = null; // { startX, startY, frameStartLeft, frameStartTop }
+
+function currentShape() {
   const placement = document.getElementById('banner-placement').value;
-  const shape = PLACEMENT_SHAPES[placement] || PLACEMENT_SHAPES.dashboard;
-  document.getElementById('banner-drop-zone').style.aspectRatio = shape.ratio;
-  document.getElementById('banner-ratio-hint').textContent = shape.hint;
+  return PLACEMENT_SHAPES[placement] || PLACEMENT_SHAPES.dashboard;
 }
 
-function updateFocalPreview() {
-  const zone = document.getElementById('banner-drop-zone');
-  zone.style.backgroundPosition = `${focalX}% ${focalY}%`;
-  const pin = document.getElementById('banner-focal-pin');
-  pin.style.left = `${focalX}%`;
-  pin.style.top = `${focalY}%`;
+function updatePreviewShape() {
+  document.getElementById('banner-ratio-hint').textContent = currentShape().hint;
+  layoutCropFrame();
 }
 
-function handlePreviewClick(e) {
-  if (!pickedImageDataUrl) {
-    document.getElementById('banner-file').click();
-    return;
+// Sizes and positions the draggable crop frame so it's as large as possible
+// while (a) matching the target aspect ratio and (b) fully fitting inside
+// the rendered <img>'s bounds (accounting for letterboxing from
+// object-fit: contain). Re-run whenever the image loads, the modal opens,
+// or the placement (and therefore target ratio) changes.
+function layoutCropFrame() {
+  const img = document.getElementById('banner-crop-img');
+  const frame = document.getElementById('banner-crop-frame');
+  if (!pickedImageDataUrl || !img.naturalWidth) return;
+
+  const stage = document.getElementById('banner-crop-stage');
+  const stageRect = stage.getBoundingClientRect();
+  const imgRect = img.getBoundingClientRect();
+  const imgLeft = imgRect.left - stageRect.left;
+  const imgTop = imgRect.top - stageRect.top;
+  const imgW = imgRect.width;
+  const imgH = imgRect.height;
+
+  const ratio = currentShape().ratio;
+  let frameW, frameH;
+  if (imgW / imgH > ratio) {
+    frameH = imgH;
+    frameW = frameH * ratio;
+  } else {
+    frameW = imgW;
+    frameH = frameW / ratio;
   }
-  const zone = document.getElementById('banner-drop-zone');
-  const rect = zone.getBoundingClientRect();
-  focalX = Math.round(((e.clientX - rect.left) / rect.width) * 100);
-  focalY = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+
+  // Keep the frame centered on the current focal point rather than resetting
+  // to center every time, so switching placement doesn't discard positioning.
+  const centerX = imgLeft + (focalX / 100) * imgW;
+  const centerY = imgTop + (focalY / 100) * imgH;
+  let frameLeft = centerX - frameW / 2;
+  let frameTop = centerY - frameH / 2;
+  frameLeft = Math.max(imgLeft, Math.min(frameLeft, imgLeft + imgW - frameW));
+  frameTop = Math.max(imgTop, Math.min(frameTop, imgTop + imgH - frameH));
+
+  frame.style.width = `${frameW}px`;
+  frame.style.height = `${frameH}px`;
+  frame.style.left = `${frameLeft}px`;
+  frame.style.top = `${frameTop}px`;
+  frame.dataset.imgLeft = imgLeft;
+  frame.dataset.imgTop = imgTop;
+  frame.dataset.imgW = imgW;
+  frame.dataset.imgH = imgH;
+
+  updateFocalFromFrame();
+}
+
+function updateFocalFromFrame() {
+  const frame = document.getElementById('banner-crop-frame');
+  const imgLeft = Number(frame.dataset.imgLeft || 0);
+  const imgTop = Number(frame.dataset.imgTop || 0);
+  const imgW = Number(frame.dataset.imgW || 1);
+  const imgH = Number(frame.dataset.imgH || 1);
+  const frameLeft = parseFloat(frame.style.left);
+  const frameTop = parseFloat(frame.style.top);
+  const frameW = parseFloat(frame.style.width);
+  const frameH = parseFloat(frame.style.height);
+
+  focalX = Math.round((((frameLeft - imgLeft) + frameW / 2) / imgW) * 100);
+  focalY = Math.round((((frameTop - imgTop) + frameH / 2) / imgH) * 100);
   focalX = Math.max(0, Math.min(100, focalX));
   focalY = Math.max(0, Math.min(100, focalY));
-  updateFocalPreview();
 }
+
+function onCropFrameDragStart(e) {
+  if (!pickedImageDataUrl) return;
+  e.preventDefault();
+  const point = e.touches ? e.touches[0] : e;
+  const frame = document.getElementById('banner-crop-frame');
+  cropDrag = {
+    startX: point.clientX,
+    startY: point.clientY,
+    frameStartLeft: parseFloat(frame.style.left),
+    frameStartTop: parseFloat(frame.style.top),
+  };
+  document.addEventListener('mousemove', onCropFrameDragMove);
+  document.addEventListener('mouseup', onCropFrameDragEnd);
+  document.addEventListener('touchmove', onCropFrameDragMove, { passive: false });
+  document.addEventListener('touchend', onCropFrameDragEnd);
+}
+
+function onCropFrameDragMove(e) {
+  if (!cropDrag) return;
+  e.preventDefault();
+  const point = e.touches ? e.touches[0] : e;
+  const frame = document.getElementById('banner-crop-frame');
+  const imgLeft = Number(frame.dataset.imgLeft || 0);
+  const imgTop = Number(frame.dataset.imgTop || 0);
+  const imgW = Number(frame.dataset.imgW || 0);
+  const imgH = Number(frame.dataset.imgH || 0);
+  const frameW = parseFloat(frame.style.width);
+  const frameH = parseFloat(frame.style.height);
+
+  let newLeft = cropDrag.frameStartLeft + (point.clientX - cropDrag.startX);
+  let newTop = cropDrag.frameStartTop + (point.clientY - cropDrag.startY);
+  newLeft = Math.max(imgLeft, Math.min(newLeft, imgLeft + imgW - frameW));
+  newTop = Math.max(imgTop, Math.min(newTop, imgTop + imgH - frameH));
+
+  frame.style.left = `${newLeft}px`;
+  frame.style.top = `${newTop}px`;
+  updateFocalFromFrame();
+}
+
+function onCropFrameDragEnd() {
+  cropDrag = null;
+  document.removeEventListener('mousemove', onCropFrameDragMove);
+  document.removeEventListener('mouseup', onCropFrameDragEnd);
+  document.removeEventListener('touchmove', onCropFrameDragMove);
+  document.removeEventListener('touchend', onCropFrameDragEnd);
+}
+
+document.getElementById('banner-crop-frame').addEventListener('mousedown', onCropFrameDragStart);
+document.getElementById('banner-crop-frame').addEventListener('touchstart', onCropFrameDragStart, { passive: false });
+window.addEventListener('resize', () => { if (pickedImageDataUrl) layoutCropFrame(); });
 
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -241,15 +342,16 @@ function resetBannerForm() {
   document.getElementById('banner-order').value = '0';
   document.getElementById('banner-active').checked = true;
   document.getElementById('banner-file').value = '';
-  document.getElementById('banner-drop-zone').style.backgroundImage = '';
+  document.getElementById('banner-crop-img').style.display = 'none';
+  document.getElementById('banner-crop-img').src = '';
+  document.getElementById('banner-crop-frame').style.display = 'none';
   document.getElementById('banner-drop-placeholder').style.display = 'block';
-  document.getElementById('banner-focal-pin').style.display = 'none';
   document.getElementById('banner-preview-actions').style.display = 'none';
   document.getElementById('banner-modal-error').style.display = 'none';
   pickedImageDataUrl = null;
   focalX = 50;
   focalY = 50;
-  updatePreviewShape();
+  document.getElementById('banner-ratio-hint').textContent = currentShape().hint;
 }
 
 function openCreateModal() {
@@ -273,15 +375,19 @@ function openEditModal(id) {
   document.getElementById('banner-placement').value = banner.placement === 'login' ? 'login' : 'dashboard';
   document.getElementById('banner-order').value = banner.order || 0;
   document.getElementById('banner-active').checked = banner.isActive;
-  updatePreviewShape();
-  document.getElementById('banner-drop-zone').style.backgroundImage = `url('${banner.imageBase64}')`;
-  document.getElementById('banner-drop-placeholder').style.display = 'none';
-  document.getElementById('banner-focal-pin').style.display = 'block';
-  document.getElementById('banner-preview-actions').style.display = 'flex';
+  document.getElementById('banner-ratio-hint').textContent = currentShape().hint;
+
   pickedImageDataUrl = banner.imageBase64;
   focalX = banner.focalX ?? 50;
   focalY = banner.focalY ?? 50;
-  updateFocalPreview();
+
+  const img = document.getElementById('banner-crop-img');
+  document.getElementById('banner-drop-placeholder').style.display = 'none';
+  document.getElementById('banner-preview-actions').style.display = 'flex';
+  img.style.display = 'block';
+  document.getElementById('banner-crop-frame').style.display = 'block';
+  img.onload = () => layoutCropFrame();
+  img.src = banner.imageBase64;
   document.getElementById('m-banner').classList.add('show');
 }
 
@@ -334,20 +440,22 @@ async function onBannerFilePicked() {
 
   try {
     pickedImageDataUrl = await processImageFile(file);
-    document.getElementById('banner-drop-zone').style.backgroundImage = `url('${pickedImageDataUrl}')`;
-    document.getElementById('banner-drop-placeholder').style.display = 'none';
-    document.getElementById('banner-focal-pin').style.display = 'block';
-    document.getElementById('banner-preview-actions').style.display = 'flex';
     focalX = 50;
     focalY = 50;
-    updateFocalPreview();
+    document.getElementById('banner-drop-placeholder').style.display = 'none';
+    document.getElementById('banner-preview-actions').style.display = 'flex';
+    const img = document.getElementById('banner-crop-img');
+    img.style.display = 'block';
+    document.getElementById('banner-crop-frame').style.display = 'block';
+    img.onload = () => layoutCropFrame();
+    img.src = pickedImageDataUrl;
   } catch (err) {
     errorEl.textContent = 'Gagal memproses gambar';
     errorEl.style.display = 'block';
   }
 }
 
-const dropZone = document.getElementById('banner-drop-zone');
+const dropZone = document.getElementById('banner-crop-stage');
 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--blue)'; });
 dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'var(--blue-mid)'; });
 dropZone.addEventListener('drop', (e) => {
